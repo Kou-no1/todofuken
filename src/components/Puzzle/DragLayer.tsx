@@ -4,6 +4,8 @@ import type { ActiveDrag } from "../../hooks/useDragAndDrop";
 import type { Prefecture } from "../../types/puzzle";
 import { viewBoxToString } from "../../utils/geometry";
 
+const DRAG_GHOST_OFFSET_Y = 58;
+
 type DragLayerProps = {
   activeDrag: ActiveDrag | null;
   prefecture?: Prefecture;
@@ -26,7 +28,7 @@ export function DragLayer({ activeDrag, prefecture }: DragLayerProps) {
     <div
       className="drag-layer"
       style={{
-        transform: `translate(${activeDrag.clientX}px, ${activeDrag.clientY}px)`,
+        transform: `translate(${activeDrag.clientX}px, ${activeDrag.clientY - DRAG_GHOST_OFFSET_Y}px)`,
         "--region-main": color.main,
         "--region-soft": color.soft,
         "--region-ink": color.ink
@@ -36,7 +38,6 @@ export function DragLayer({ activeDrag, prefecture }: DragLayerProps) {
       <svg viewBox={viewBoxToString(viewBox)} focusable="false">
         <path d={prefecture.path} />
       </svg>
-      <span>{prefecture.name}</span>
     </div>
   );
 }

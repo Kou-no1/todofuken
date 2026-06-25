@@ -2,6 +2,16 @@ import { APP_NAME } from "../../constants";
 import { loadBestTime } from "../../hooks/useBestTime";
 import { formatClock } from "../../utils/timeFormat";
 
+type ModeCardProps = {
+  className: string;
+  emoji: string;
+  label: string;
+  title: string;
+  description: string;
+  meta: string;
+  onClick: () => void;
+};
+
 type ModeSelectProps = {
   onNationalLearn: () => void;
   onNationalTimeAttack: () => void;
@@ -9,6 +19,22 @@ type ModeSelectProps = {
   onRegionTimeAttack: () => void;
   onCapitalQuiz: () => void;
 };
+
+function ModeCard({ className, emoji, label, title, description, meta, onClick }: ModeCardProps) {
+  return (
+    <button type="button" className={className} onClick={onClick}>
+      <span className="mode-card-top">
+        <span className="mode-emoji" aria-hidden="true">
+          {emoji}
+        </span>
+        <span className="mode-label">{label}</span>
+      </span>
+      <strong>{title}</strong>
+      <span className="mode-description">{description}</span>
+      <small className="mode-meta">{meta}</small>
+    </button>
+  );
+}
 
 export function ModeSelect({
   onNationalLearn,
@@ -30,51 +56,51 @@ export function ModeSelect({
       </section>
 
       <section className="mode-grid" aria-label="モード選択">
-        <button type="button" className="mode-card primary-mode mode-red" onClick={onNationalTimeAttack}>
-          <span className="mode-emoji" aria-hidden="true">
-            ⏱️
-          </span>
-          <span className="mode-label">タイムアタック</span>
-          <strong>全国47ピース</strong>
-          <span>赤いガイドなしで自己ベストに挑戦</span>
-          {nationalBest ? <small>ベスト {formatClock(nationalBest.bestTimeSeconds)}</small> : <small>まずは挑戦</small>}
-        </button>
-        <button type="button" className="mode-card mode-green" onClick={onNationalLearn}>
-          <span className="mode-emoji" aria-hidden="true">
-            🧭
-          </span>
-          <span className="mode-label">覚えるモード</span>
-          <strong>全国を練習</strong>
-          <span>赤いガイドを見ながら形と場所を覚える</span>
-          {learnBest ? <small>練習ベスト {formatClock(learnBest.bestTimeSeconds)}</small> : <small>ゆっくり練習</small>}
-        </button>
-        <button type="button" className="mode-card mode-blue" onClick={onRegionTimeAttack}>
-          <span className="mode-emoji" aria-hidden="true">
-            🚀
-          </span>
-          <span className="mode-label">地方タイムアタック</span>
-          <strong>地方別に挑戦</strong>
-          <span>ガイドなしで6地方を少しずつ攻略</span>
-          <small>地方ごとにベスト保存</small>
-        </button>
-        <button type="button" className="mode-card mode-orange" onClick={onRegionLearn}>
-          <span className="mode-emoji" aria-hidden="true">
-            🌈
-          </span>
-          <span className="mode-label">地方で覚える</span>
-          <strong>少しずつ練習</strong>
-          <span>赤いガイドつきで地方ごとに覚える</span>
-          <small>北海道・東北から九州・沖縄まで</small>
-        </button>
-        <button type="button" className="mode-card mode-purple" onClick={onCapitalQuiz}>
-          <span className="mode-emoji" aria-hidden="true">
-            🏫
-          </span>
-          <span className="mode-label">県庁所在地モード</span>
-          <strong>4択クイズ</strong>
-          <span>県名から県庁所在地を選ぶ</span>
-          {quizBest ? <small>全国ベスト {formatClock(quizBest.bestTimeSeconds)}</small> : <small>タイムも記録</small>}
-        </button>
+        <ModeCard
+          className="mode-card primary-mode mode-red"
+          emoji="⏱️"
+          label="タイムアタック"
+          title="全国47ピース"
+          description="赤いガイドなしで自己ベストに挑戦"
+          meta={nationalBest ? `ベスト ${formatClock(nationalBest.bestTimeSeconds)}` : "まずは挑戦"}
+          onClick={onNationalTimeAttack}
+        />
+        <ModeCard
+          className="mode-card mode-green"
+          emoji="🧭"
+          label="覚えるモード"
+          title="全国を練習"
+          description="赤いガイドを見ながら形と場所を覚える"
+          meta={learnBest ? `練習ベスト ${formatClock(learnBest.bestTimeSeconds)}` : "ゆっくり練習"}
+          onClick={onNationalLearn}
+        />
+        <ModeCard
+          className="mode-card mode-blue"
+          emoji="🚀"
+          label="地方タイムアタック"
+          title="地方別に挑戦"
+          description="ガイドなしで6地方を少しずつ攻略"
+          meta="地方ごとにベスト保存"
+          onClick={onRegionTimeAttack}
+        />
+        <ModeCard
+          className="mode-card mode-orange"
+          emoji="🌈"
+          label="地方で覚える"
+          title="少しずつ練習"
+          description="赤いガイドつきで地方ごとに覚える"
+          meta="北海道・東北から九州・沖縄まで"
+          onClick={onRegionLearn}
+        />
+        <ModeCard
+          className="mode-card mode-purple"
+          emoji="🏫"
+          label="県庁所在地モード"
+          title="4択クイズ"
+          description="県名から県庁所在地を選ぶ"
+          meta={quizBest ? `全国ベスト ${formatClock(quizBest.bestTimeSeconds)}` : "タイムも記録"}
+          onClick={onCapitalQuiz}
+        />
       </section>
     </main>
   );

@@ -224,7 +224,7 @@ export function PrefecturePuzzleMode({
       const target = active ? prefectureById.get(active.prefectureId) : undefined;
       const rect = svgRef.current?.getBoundingClientRect();
 
-      if (!active || !target || !rect || phase !== "playing") {
+      if (!isLearningMode || !active || !target || !rect || phase !== "playing") {
         setDropPreviewId(undefined);
         return;
       }
@@ -234,7 +234,7 @@ export function PrefecturePuzzleMode({
       const dropPoint = pointFromClientPosition(clientX, clientY, rect, viewport.viewBox);
       setDropPreviewId(isInsideMap && isDropCorrect(target, dropPoint) ? target.id : undefined);
     },
-    [drag.activeDrag, phase, viewport.viewBox]
+    [drag.activeDrag, isLearningMode, phase, viewport.viewBox]
   );
 
   const finishDrop = useCallback(
