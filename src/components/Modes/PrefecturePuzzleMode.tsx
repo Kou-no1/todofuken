@@ -423,6 +423,21 @@ export function PrefecturePuzzleMode({
           dropPreviewId={dropPreviewId}
           recentPlacedId={recentPlacedId}
         />
+        {activePrefecture ? (
+          <div
+            className="drag-name-badge"
+            style={
+              {
+                "--region-main": getRegionColor(activePrefecture.regionId).main,
+                "--region-soft": getRegionColor(activePrefecture.regionId).soft,
+                "--region-ink": getRegionColor(activePrefecture.regionId).ink
+              } as CSSProperties
+            }
+            aria-live="polite"
+          >
+            {activePrefecture.name}
+          </div>
+        ) : null}
         <MiniMap viewBox={viewport.viewBox} scopeIds={scopeIds} />
         <ZoomControls
           fitLabel={regionId ? "この地方を表示" : "全国表示"}

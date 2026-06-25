@@ -1,4 +1,3 @@
-import { APP_NAME } from "../../constants";
 import { loadBestTime } from "../../hooks/useBestTime";
 import { formatClock } from "../../utils/timeFormat";
 
@@ -50,8 +49,8 @@ export function ModeSelect({
   return (
     <main className="home-screen">
       <section className="home-hero" aria-labelledby="home-title">
-        <p className="hero-kicker">小学校4年生向け 日本地図パズル</p>
-        <h1 id="home-title">{APP_NAME}</h1>
+        <p className="hero-catch">パズルで覚える！</p>
+        <h1 id="home-title">都道府県</h1>
         <p className="hero-copy">形を見て、場所を思い出して、都道府県を覚えよう！</p>
       </section>
 

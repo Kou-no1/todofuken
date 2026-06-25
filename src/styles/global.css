@@ -188,6 +188,7 @@ button:focus-visible {
 }
 
 .hero-kicker,
+.hero-catch,
 .result-mode,
 .quiz-step {
   margin: 0;
@@ -196,7 +197,27 @@ button:focus-visible {
   letter-spacing: 0;
 }
 
-.home-hero h1,
+.hero-catch {
+  width: fit-content;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #fff0b9;
+  color: var(--accent-dark);
+  font-size: clamp(1.25rem, 3vw, 2rem);
+  box-shadow: inset 0 -4px 0 rgba(255, 122, 89, 0.14);
+}
+
+.home-hero h1 {
+  margin: 0;
+  font-size: clamp(4rem, 13vw, 8.6rem);
+  line-height: 0.9;
+  letter-spacing: 0;
+  color: #26324c;
+  text-shadow:
+    0 6px 0 rgba(255, 202, 58, 0.42),
+    0 14px 28px rgba(90, 62, 26, 0.14);
+}
+
 .select-heading h1 {
   margin: 0;
   font-size: clamp(2rem, 6vw, 4.8rem);
@@ -488,6 +509,31 @@ button:focus-visible {
   fill: var(--sky);
 }
 
+.drag-name-badge {
+  position: absolute;
+  z-index: 35;
+  top: clamp(10px, 2.4vh, 22px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(82vw, 430px);
+  padding: 9px 18px 11px;
+  border: 3px solid var(--region-main);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--region-soft) 84%, white);
+  color: var(--region-ink);
+  box-shadow: 0 12px 28px rgba(39, 50, 74, 0.18), inset 0 -5px 0 rgba(255, 255, 255, 0.58);
+  font-size: clamp(2.1rem, 6vw, 4rem);
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  will-change: transform;
+  animation: lift-piece 160ms ease-out;
+}
+
 .prefecture-shape path {
   fill: #fffdf3;
   fill-rule: evenodd;
@@ -720,14 +766,14 @@ button:focus-visible {
   position: fixed;
   left: 0;
   top: 0;
-  width: 116px;
-  height: 96px;
+  width: 144px;
+  height: 120px;
   display: grid;
   place-items: center;
   pointer-events: none;
   z-index: 40;
   translate: -50% -50%;
-  scale: 1.12;
+  scale: 1.18;
   filter: drop-shadow(0 18px 24px rgba(39, 50, 74, 0.26)) drop-shadow(0 4px 8px rgba(39, 50, 74, 0.18));
   will-change: transform, scale, filter;
   animation: lift-piece 180ms ease-out;
@@ -1109,9 +1155,17 @@ button:focus-visible {
     gap: 10px;
   }
 
-  .home-hero h1,
+  .home-hero h1 {
+    font-size: clamp(3.5rem, 17vw, 4.5rem);
+  }
+
   .select-heading h1 {
     font-size: 1.85rem;
+  }
+
+  .hero-catch {
+    padding: 5px 10px;
+    font-size: 1.08rem;
   }
 
   .hero-copy,
