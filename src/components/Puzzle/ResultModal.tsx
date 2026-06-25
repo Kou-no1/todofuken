@@ -37,18 +37,41 @@ function getModeLabel(mode: GameMode, regionId?: string): string {
   return "学習モード";
 }
 
-export function ResultModal({ result, totalCount, onRetry, onNextRegion, onNational, onHome }: ResultModalProps) {
+function getResultMessage(result: PuzzleResult, showTimeTitle: boolean, title: ReturnType<typeof getTimeTitle>) {
+  if (showTimeTitle) {
+    return title.comment;
+  }
+
+  return result.isNewBest
+    ? "いいペースでクリアできました。次も楽しく挑戦しましょう。"
+    : "最後までクリア！次は自己ベストをねらいましょう。";
+}
+
+export function ResultModal({ result, totalCount, onRetry, onNextRegion, onNational: _onNational, onHome }: ResultModalProps) {
   const title = getTimeTitle(result.clearTimeSeconds);
   const nextGap = getNextTitleGap(result.clearTimeSeconds);
+  const showTimeTitle = result.mode === "prefecture-national";
+  const resultMessage = getResultMessage(result, showTimeTitle, title);
+  const titleProgressMessage = nextGap.isTopTitle
+    ? "最上位称号達成！"
+    : `次の称号まであと${nextGap.secondsNeeded}秒`;
+  const compactMessage = [
+    result.isNewBest ? "自己ベスト更新！" : "",
+    showTimeTitle ? titleProgressMessage : ""
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div className="result-backdrop" role="dialog" aria-modal="true" aria-labelledby="result-title">
-      <section className="result-card">
-        <p className="result-mode">{getModeLabel(result.mode, result.regionId)}</p>
-        <h2 id="result-title">クリア！</h2>
-        <TimeTitleBadge title={title} />
+      <section className={showTimeTitle ? "result-card has-title" : "result-card no-title"}>
+        <div className="result-heading">
+          <p className="result-mode">{getModeLabel(result.mode, result.regionId)}</p>
+          <h2 id="result-title">クリア！</h2>
+        </div>
+        {showTimeTitle ? <TimeTitleBadge title={title} /> : null}
         <dl className="result-stats">
-          <div>
+          <div className="result-stat-time">
             <dt>タイム</dt>
             <dd>{formatClearTime(result.clearTimeSeconds)}</dd>
           </div>
@@ -61,15 +84,8 @@ export function ResultModal({ result, totalCount, onRetry, onNextRegion, onNatio
             <dd>{result.mistakes}回</dd>
           </div>
         </dl>
-        <p className="title-comment">{title.comment}</p>
-        <p className={result.isNewBest ? "best-message new-record" : "best-message"}>
-          {result.isNewBest ? "自己ベスト更新！" : "最後までやりきれました。次は自己ベストをねらいましょう。"}
-        </p>
-        <p className="next-title-message">
-          {nextGap.isTopTitle
-            ? `最上位称号達成！きみは${title.title}！`
-            : `次の称号「${nextGap.nextTitle?.title}」まであと${nextGap.secondsNeeded}秒！`}
-        </p>
+        <p className="result-message">{resultMessage}</p>
+        {compactMessage ? <p className="result-note new-record">{compactMessage}</p> : null}
         <div className="result-actions">
           <button type="button" className="primary-button" onClick={onRetry}>
             もう一度
@@ -77,11 +93,6 @@ export function ResultModal({ result, totalCount, onRetry, onNextRegion, onNatio
           {onNextRegion ? (
             <button type="button" className="secondary-button" onClick={onNextRegion}>
               次の地方へ
-            </button>
-          ) : null}
-          {onNational ? (
-            <button type="button" className="secondary-button" onClick={onNational}>
-              全国モードへ
             </button>
           ) : null}
           <button type="button" className="ghost-button" onClick={onHome}>
