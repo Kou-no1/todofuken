@@ -1,0 +1,64 @@
+export type BBox = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export type Point = {
+  x: number;
+  y: number;
+};
+
+export type ViewBox = BBox;
+
+export type Prefecture = {
+  id: string;
+  name: string;
+  kana: string;
+  regionId: string;
+  capital: string;
+  capitalKana: string;
+  path: string;
+  centroid: Point;
+  capitalPoint?: Point;
+  bbox: BBox;
+};
+
+export type Region = {
+  id: string;
+  name: string;
+  prefectureIds: string[];
+  bbox: BBox;
+};
+
+export type TimeTitle = {
+  id: string;
+  minSeconds: number;
+  maxSeconds: number | null;
+  title: string;
+  comment: string;
+};
+
+export type GameMode =
+  | "prefecture-national"
+  | "prefecture-region"
+  | "capital-quiz"
+  | "capital-label"
+  | "capital-pin";
+
+export type BestTimeRecord = {
+  mode: GameMode;
+  regionId?: string;
+  bestTimeSeconds: number;
+  bestMistakes: number;
+  achievedAt: string;
+};
+
+export type PuzzleResult = {
+  mode: GameMode;
+  regionId?: string;
+  clearTimeSeconds: number;
+  mistakes: number;
+  isNewBest: boolean;
+};
