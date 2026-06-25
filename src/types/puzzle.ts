@@ -46,6 +46,7 @@ export type GameMode =
   | "prefecture-learn-national"
   | "prefecture-learn-region"
   | "capital-quiz"
+  | "capital-quiz-special"
   | "capital-label"
   | "capital-pin";
 

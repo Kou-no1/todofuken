@@ -3,7 +3,7 @@ import { getNextTitleGap, getTimeTitle } from "../utils/timeTitle";
 
 describe("time title rules", () => {
   it("matches the required boundary titles", () => {
-    expect(getTimeTitle(29.9).title).toBe("日本地図の神速マスター");
+    expect(getTimeTitle(29.9).title).toBe("日本地図のしんそくマスター");
     expect(getTimeTitle(30).title).toBe("都道府県チャンピオン");
     expect(getTimeTitle(45).title).toBe("地図パズル名人");
     expect(getTimeTitle(300).title).toBe("完走チャレンジャー");

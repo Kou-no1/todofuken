@@ -5,7 +5,7 @@ export const timeTitles: TimeTitle[] = [
     id: "under_30",
     minSeconds: 0,
     maxSeconds: 30,
-    title: "日本地図の神速マスター",
+    title: "日本地図のしんそくマスター",
     comment: "ものすごいスピード！都道府県の場所が頭に入っているね。"
   },
   {
@@ -26,14 +26,14 @@ export const timeTitles: TimeTitle[] = [
     id: "60_75",
     minSeconds: 60,
     maxSeconds: 75,
-    title: "47ピースの達人",
+    title: "47ピースのたつじん",
     comment: "かなり速い！都道府県の形と場所がよく分かってきたね。"
   },
   {
     id: "75_90",
     minSeconds: 75,
     maxSeconds: 90,
-    title: "地方博士",
+    title: "地方はかせ",
     comment: "地方ごとのまとまりをしっかりつかめているよ。"
   },
   {
@@ -110,15 +110,15 @@ export const timeTitles: TimeTitle[] = [
     id: "240_255",
     minSeconds: 240,
     maxSeconds: 255,
-    title: "地図チャレンジ隊長",
-    comment: "しっかり考えて進められたね。次の挑戦が楽しみだね。"
+    title: "地図チャレンジたいちょう",
+    comment: "しっかり考えて進められたね。つぎのちょうせんが楽しみだね。"
   },
   {
     id: "255_270",
     minSeconds: 255,
     maxSeconds: 270,
     title: "もうすぐマスター",
-    comment: "あと少しでさらに上の称号をねらえるよ。"
+    comment: "あと少しでさらに上のしょうごうをねらえるよ。"
   },
   {
     id: "270_285",

@@ -31,9 +31,9 @@ describe("result modal title display", () => {
     );
 
     expect(html).toContain("time-title-badge");
-    expect(html).toContain("称号");
-    expect(html).toContain("次の称号まであと12秒");
-    expect(html).toContain("自己ベスト更新！");
+    expect(html).toContain("しょうごう");
+    expect(html).toContain("つぎのしょうごうまであと12秒");
+    expect(html).toContain("じぶんのベストこうしん！");
   });
 
   it("hides title-related content for region time attack", () => {
@@ -49,12 +49,12 @@ describe("result modal title display", () => {
     );
 
     expect(html).not.toContain("time-title-badge");
-    expect(html).not.toContain("称号");
-    expect(html).not.toContain("次の称号");
-    expect(html).not.toContain("最上位称号");
+    expect(html).not.toContain("しょうごう");
+    expect(html).not.toContain("つぎのしょうごう");
+    expect(html).not.toContain("さいじょういしょうごう");
     expect(html).not.toContain("全国モードへ");
     expect(html).toContain("関東地方 タイムアタック");
-    expect(html).toContain("自己ベスト更新！");
+    expect(html).toContain("じぶんのベストこうしん！");
     expect(html).toContain("次の地方へ");
   });
 });

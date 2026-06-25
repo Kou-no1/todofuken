@@ -281,6 +281,13 @@ button:focus-visible {
 
 .region-card {
   display: grid;
+  align-content: start;
+  grid-template-rows: auto auto auto 1fr;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--region-soft, #fff7d6) 84%, white), #ffffff 72%),
+    var(--surface);
+  border-color: color-mix(in srgb, var(--region-main, #ffb703) 68%, white);
+  color: var(--region-ink, var(--ink));
 }
 
 .mode-card::before,
@@ -296,6 +303,61 @@ button:focus-visible {
 .region-card:hover {
   border-color: var(--card-accent, var(--accent));
   transform: translateY(-3px);
+}
+
+.region-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.region-emoji {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--region-main, #ffb703) 22%, white);
+  color: var(--region-main, #ffb703);
+  font-size: 1.45rem;
+  line-height: 1;
+  box-shadow: inset 0 -4px 0 rgba(39, 50, 74, 0.08);
+}
+
+.region-pill {
+  min-width: 0;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--region-main, #ffb703) 18%, white);
+  color: var(--region-ink, #27324a);
+  font-size: 0.86rem;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.national-card {
+  --card-accent: #ff85b3;
+  --region-main: #ff85b3;
+  --region-soft: #fff1d6;
+  --region-ink: #26324c;
+  background:
+    linear-gradient(135deg, rgba(255, 133, 179, 0.2), rgba(85, 199, 247, 0.2), rgba(139, 212, 80, 0.2), rgba(255, 184, 77, 0.2)),
+    #ffffff;
+}
+
+.national-card::before {
+  background: linear-gradient(180deg, #55c7f7, #ff85b3, #8bd450, #ffb84d, #ff7a66, #b28cff);
+}
+
+.special-card {
+  --card-accent: #b28cff;
+  --region-main: #b28cff;
+  --region-soft: #f1e9ff;
+  --region-ink: #4c2e95;
+  background: linear-gradient(135deg, #f1e9ff, #fff7d6 76%);
+  border-color: #d9c2ff;
 }
 
 .primary-mode {
@@ -369,6 +431,22 @@ button:focus-visible {
 .region-card small {
   color: var(--muted);
   font-weight: 800;
+}
+
+.region-card .region-emoji {
+  color: var(--region-main, #ffb703);
+}
+
+.region-card .region-pill {
+  color: var(--region-ink, #27324a);
+}
+
+.region-card > span:not(.region-card-top) {
+  color: color-mix(in srgb, var(--region-ink, #26324c) 78%, white);
+}
+
+.region-card small {
+  color: color-mix(in srgb, var(--region-ink, #26324c) 74%, white);
 }
 
 .mode-description {
@@ -1035,16 +1113,50 @@ button:focus-visible {
   overflow: hidden;
 }
 
+.quiz-card.is-correct {
+  border-color: #8bd450;
+  background: linear-gradient(180deg, #ffffff, #ecffd9);
+  animation: pop-in 240ms ease-out;
+}
+
+.quiz-card.is-wrong {
+  border-color: #ffd580;
+  background: linear-gradient(180deg, #ffffff, #fff1d6);
+  animation: gentle-wobble 320ms ease-out;
+}
+
 .quiz-card h1 {
   margin: 0;
   font-size: clamp(1.7rem, 4vw, 3.2rem);
   line-height: 1.16;
 }
 
+.quiz-card ruby,
+.option-button ruby,
+.mode-card ruby,
+.select-heading ruby {
+  ruby-position: over;
+}
+
+.quiz-card rt,
+.option-button rt,
+.mode-card rt,
+.select-heading rt {
+  color: var(--muted);
+  font-size: 0.42em;
+  font-weight: 900;
+  line-height: 1;
+}
+
 .option-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.option-grid.has-six-options {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .option-button {
@@ -1056,6 +1168,8 @@ button:focus-visible {
   font-size: clamp(1.08rem, 2.2vw, 1.35rem);
   font-weight: 900;
   cursor: pointer;
+  line-height: 1.1;
+  box-shadow: 0 6px 0 rgba(124, 72, 20, 0.08);
 }
 
 .option-button:hover:not(:disabled) {
@@ -1069,11 +1183,13 @@ button:focus-visible {
 .option-button.is-correct {
   background: #daf4e8;
   border-color: var(--success);
+  color: #176447;
 }
 
 .option-button.is-wrong {
-  background: #ffe1df;
-  border-color: var(--wrong);
+  background: #fff1d6;
+  border-color: #ffb84d;
+  color: #8f5d00;
 }
 
 .quiz-map-panel {
@@ -1252,7 +1368,16 @@ button:focus-visible {
     font-size: 1.35rem;
   }
 
-  .mode-label {
+  .region-emoji {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+    border-radius: 13px;
+    font-size: 1.25rem;
+  }
+
+  .mode-label,
+  .region-pill {
     font-size: 0.78rem;
   }
 
@@ -1400,6 +1525,10 @@ button:focus-visible {
   .option-button {
     min-height: 58px;
     font-size: 1rem;
+  }
+
+  .option-grid.has-six-options {
+    gap: 7px;
   }
 }
 

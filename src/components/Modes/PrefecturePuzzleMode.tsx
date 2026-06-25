@@ -360,8 +360,8 @@ export function PrefecturePuzzleMode({
     const regionName = regionById.get(target.regionId)?.name ?? "この地方";
     puzzle.setFeedback(
       isLearningMode
-        ? `${target.name}は${regionName}。県庁所在地は${target.capital}です。赤いガイドを見て覚えよう。`
-        : `${target.name}は${regionName}。県庁所在地は${target.capital}です。地図を広く見て探してみよう。`
+        ? `${target.name}は${regionName}。県庁所在地（けんちょうしょざいち）は${target.capital}です。赤いガイドを見て覚えよう。`
+        : `${target.name}は${regionName}。県庁所在地（けんちょうしょざいち）は${target.capital}です。地図を広く見て探してみよう。`
     );
   }, [activePrefecture, isLearningMode, puzzle, regionId, remainingPrefectures, viewport]);
 
@@ -397,11 +397,11 @@ export function PrefecturePuzzleMode({
           リセット
         </button>
         <button type="button" className="ghost-button compact" onClick={onHome}>
-          モード選択
+          モードを選ぶ
         </button>
       </HeaderBar>
 
-      <section className="play-status" aria-label="プレイ状況">
+      <section className="play-status" aria-label="プレイのようす">
         <TimeAttackPanel elapsedSeconds={timer.elapsedSeconds} bestTime={bestTime} />
         <ProgressPanel placedCount={puzzle.placedCount} totalCount={puzzle.totalCount} mistakes={puzzle.mistakes} />
         <p className="status-message" aria-live="polite">
@@ -440,7 +440,7 @@ export function PrefecturePuzzleMode({
         ) : null}
         <MiniMap viewBox={viewport.viewBox} scopeIds={scopeIds} />
         <ZoomControls
-          fitLabel={regionId ? "この地方を表示" : "全国表示"}
+          fitLabel={regionId ? "この地方を見る" : "全国を見る"}
           onZoomIn={viewport.zoomIn}
           onZoomOut={viewport.zoomOut}
           onFit={handleFit}
@@ -449,7 +449,7 @@ export function PrefecturePuzzleMode({
           message={
             isLearningMode
               ? "覚えるモードでは赤いガイドを見ながら練習できます。"
-              : "タイムアタックでは赤いガイドなしで挑戦します。"
+              : "タイムアタックでは赤いガイドなしでちょうせんします。"
           }
           targetName={activePrefecture?.name ?? remainingPrefectures[0]?.name}
           onHint={handleHint}

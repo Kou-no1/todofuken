@@ -11,12 +11,19 @@ import { useBestTime } from "../../hooks/useBestTime";
 import { useMapViewport } from "../../hooks/useMapViewport";
 import { useTimer } from "../../hooks/useTimer";
 import type { Prefecture, PuzzleResult } from "../../types/puzzle";
-import { shuffle, takeRandom } from "../../utils/shuffle";
+import {
+  createCapitalQuizOptions,
+  createCapitalQuizQuestions,
+  getCapitalQuizPrefectures,
+  type CapitalQuizOption,
+  type CapitalQuizQuestion,
+  type CapitalQuizVariant
+} from "../../utils/capitalQuiz";
 
 type CapitalQuizModeProps = {
   regionId?: string;
+  variant?: CapitalQuizVariant;
   onHome: () => void;
-  onStartNationalQuiz: () => void;
   onStartRegionQuiz: (regionId: string) => void;
 };
 
@@ -35,42 +42,101 @@ function getScopePrefectures(regionId?: string): Prefecture[] {
   return prefectures.filter((prefecture) => region.prefectureIds.includes(prefecture.id));
 }
 
-function makeOptions(current: Prefecture | undefined): string[] {
-  if (!current) {
-    return [];
-  }
-
-  const otherCapitals = takeRandom(
-    prefectures.map((prefecture) => prefecture.capital),
-    3,
-    [current.capital]
+function RubyName({ label, kana }: { label: string; kana: string }) {
+  return (
+    <ruby>
+      {label}
+      <rt>{kana}</rt>
+    </ruby>
   );
-
-  return shuffle([current.capital, ...otherCapitals]);
 }
 
-export function CapitalQuizMode({ regionId, onHome, onStartNationalQuiz, onStartRegionQuiz }: CapitalQuizModeProps) {
+function CapitalTerm() {
+  return (
+    <ruby>
+      県庁所在地<rt>けんちょうしょざいち</rt>
+    </ruby>
+  );
+}
+
+function getQuizModeLabel(variant: CapitalQuizVariant, regionId?: string) {
+  if (variant === "different-capital") {
+    return "県名とちがう市 とっくん";
+  }
+
+  return regionId ? `${regionById.get(regionId)?.name ?? "地方"} クイズ` : "全国 クイズ";
+}
+
+function getOpeningFeedback(variant: CapitalQuizVariant) {
+  return variant === "different-capital"
+    ? "県名と市名がちがうところだけを、6つから選びます。"
+    : "県名から市名、市名から県名のもんだいが出ます。";
+}
+
+function getQuestionTitle(question: CapitalQuizQuestion | undefined) {
+  if (!question) {
+    return "じゅんび中";
+  }
+
+  if (question.direction === "prefecture-to-capital") {
+    return (
+      <>
+        <RubyName label={question.prefecture.name} kana={question.prefecture.kana} />
+        の<CapitalTerm />は？
+      </>
+    );
+  }
+
+  return (
+    <>
+      <RubyName label={question.prefecture.capital} kana={question.prefecture.capitalKana} />
+      は、どの都道府県の<CapitalTerm />？
+    </>
+  );
+}
+
+function getCorrectAnswerText(question: CapitalQuizQuestion) {
+  if (question.direction === "prefecture-to-capital") {
+    return question.prefecture.capital;
+  }
+
+  return question.prefecture.name;
+}
+
+export function CapitalQuizMode({ regionId, variant = "standard", onHome, onStartRegionQuiz }: CapitalQuizModeProps) {
   const scopePrefectures = useMemo(() => getScopePrefectures(regionId), [regionId]);
-  const scopeIds = useMemo(() => new Set(scopePrefectures.map((prefecture) => prefecture.id)), [scopePrefectures]);
+  const quizPrefectures = useMemo(
+    () => getCapitalQuizPrefectures(scopePrefectures, variant),
+    [scopePrefectures, variant]
+  );
+  const scopeIds = useMemo(
+    () => new Set((quizPrefectures.length > 0 ? quizPrefectures : scopePrefectures).map((prefecture) => prefecture.id)),
+    [quizPrefectures, scopePrefectures]
+  );
+  const optionCount = variant === "different-capital" ? 6 : 4;
+  const gameMode = variant === "different-capital" ? "capital-quiz-special" : "capital-quiz";
   const [runId, setRunId] = useState(0);
   const [phase, setPhase] = useState<QuizPhase>("countdown");
   const [countdown, setCountdown] = useState(3);
-  const [questions, setQuestions] = useState<Prefecture[]>([]);
+  const [questions, setQuestions] = useState<CapitalQuizQuestion[]>([]);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [mistakes, setMistakes] = useState(0);
   const [missedIds, setMissedIds] = useState<Set<string>>(new Set());
   const [isReview, setIsReview] = useState(false);
-  const [feedback, setFeedback] = useState("県名を見て、県庁所在地を選びましょう。");
+  const [feedback, setFeedback] = useState(getOpeningFeedback(variant));
   const [locked, setLocked] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [result, setResult] = useState<PuzzleResult | null>(null);
   const timer = useTimer();
-  const { bestTime, recordResult } = useBestTime("capital-quiz", regionId);
+  const { bestTime, recordResult } = useBestTime(gameMode, regionId);
   const viewport = useMapViewport(regionId);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const timeoutRef = useRef<number | null>(null);
   const currentQuestion = questions[questionIndex];
-  const options = useMemo(() => makeOptions(currentQuestion), [currentQuestion?.id]);
+  const options = useMemo(
+    () => createCapitalQuizOptions(currentQuestion, prefectures, optionCount),
+    [currentQuestion, optionCount]
+  );
 
   useEffect(() => {
     if (timeoutRef.current !== null) {
@@ -78,12 +144,12 @@ export function CapitalQuizMode({ regionId, onHome, onStartNationalQuiz, onStart
     }
 
     timer.reset();
-    setQuestions(shuffle(scopePrefectures));
+    setQuestions(createCapitalQuizQuestions(scopePrefectures, variant));
     setQuestionIndex(0);
     setMistakes(0);
     setMissedIds(new Set());
     setIsReview(false);
-    setFeedback("県名を見て、県庁所在地を選びましょう。");
+    setFeedback(getOpeningFeedback(variant));
     setLocked(false);
     setSelectedOption(null);
     setResult(null);
@@ -115,7 +181,7 @@ export function CapitalQuizMode({ regionId, onHome, onStartNationalQuiz, onStart
         window.clearTimeout(timeoutRef.current);
       }
     };
-  }, [regionId, runId]);
+  }, [regionId, runId, scopePrefectures, variant]);
 
   useEffect(() => {
     if (!currentQuestion) {
@@ -125,16 +191,16 @@ export function CapitalQuizMode({ regionId, onHome, onStartNationalQuiz, onStart
     if (regionId) {
       viewport.fitToRegion(regionId);
     } else {
-      viewport.fitToRegion(currentQuestion.regionId);
+      viewport.fitToRegion(currentQuestion.prefecture.regionId);
     }
-  }, [currentQuestion?.id, regionId]);
+  }, [currentQuestion?.prefecture.id, regionId]);
 
   const completeQuiz = useCallback(
     (finalMistakes: number) => {
       const clearTimeSeconds = timer.stop();
       const best = recordResult(clearTimeSeconds, finalMistakes);
       setResult({
-        mode: "capital-quiz",
+        mode: gameMode,
         regionId,
         clearTimeSeconds,
         mistakes: finalMistakes,
@@ -142,7 +208,7 @@ export function CapitalQuizMode({ regionId, onHome, onStartNationalQuiz, onStart
       });
       setPhase("complete");
     },
-    [recordResult, regionId, timer]
+    [gameMode, recordResult, regionId, timer]
   );
 
   const moveNext = useCallback(
@@ -153,52 +219,51 @@ export function CapitalQuizMode({ regionId, onHome, onStartNationalQuiz, onStart
         setQuestionIndex((current) => current + 1);
         setLocked(false);
         setSelectedOption(null);
-        setFeedback(isReview ? "復習問題です。落ち着いて選びましょう。" : "次の問題です。");
+        setFeedback(isReview ? "ふくしゅう中です。落ち着いて選びましょう。" : "つぎのもんだいです。");
         return;
       }
 
       if (!isReview && nextMissedIds.size > 0) {
-        const reviewQuestions = scopePrefectures.filter((prefecture) => nextMissedIds.has(prefecture.id));
+        const reviewQuestions = questions.filter((question) => nextMissedIds.has(question.prefecture.id));
         setQuestions(reviewQuestions);
         setQuestionIndex(0);
         setMissedIds(new Set());
         setIsReview(true);
         setLocked(false);
         setSelectedOption(null);
-        setFeedback("間違えた問題だけ復習します。ここで覚え直しましょう。");
+        setFeedback("まちがえたもんだいだけ、もう一回やってみよう。");
         return;
       }
 
       completeQuiz(finalMistakes);
     },
-    [completeQuiz, isReview, questionIndex, questions.length, scopePrefectures]
+    [completeQuiz, isReview, questionIndex, questions]
   );
 
   const handleOption = useCallback(
-    (option: string) => {
+    (option: CapitalQuizOption) => {
       if (phase !== "playing" || locked || !currentQuestion) {
         return;
       }
 
-      const isCorrect = option === currentQuestion.capital;
-      const nextMistakes = isCorrect ? mistakes : mistakes + 1;
+      const nextMistakes = option.isCorrect ? mistakes : mistakes + 1;
       const nextMissedIds = new Set(missedIds);
 
       setLocked(true);
-      setSelectedOption(option);
+      setSelectedOption(option.value);
       setMistakes(nextMistakes);
 
-      if (isCorrect) {
-        setFeedback(`${currentQuestion.capital}、正解！`);
+      if (option.isCorrect) {
+        setFeedback(`${getCorrectAnswerText(currentQuestion)}、せいかい！`);
       } else {
-        nextMissedIds.add(currentQuestion.id);
+        nextMissedIds.add(currentQuestion.prefecture.id);
         setMissedIds(nextMissedIds);
-        setFeedback(`答えは${currentQuestion.capital}です。あとで復習できます。`);
+        setFeedback(`答えは${getCorrectAnswerText(currentQuestion)}です。あとでふくしゅうできます。`);
       }
 
       timeoutRef.current = window.setTimeout(() => {
         moveNext(nextMissedIds, nextMistakes);
-      }, isCorrect ? 650 : 900);
+      }, option.isCorrect ? 650 : 950);
     },
     [currentQuestion, locked, mistakes, missedIds, moveNext, phase]
   );
@@ -209,7 +274,7 @@ export function CapitalQuizMode({ regionId, onHome, onStartNationalQuiz, onStart
     if (regionId) {
       viewport.fitToRegion(regionId);
     } else if (currentQuestion) {
-      viewport.fitToRegion(currentQuestion.regionId);
+      viewport.fitToRegion(currentQuestion.prefecture.regionId);
     } else {
       viewport.fitToJapan();
     }
@@ -232,11 +297,11 @@ export function CapitalQuizMode({ regionId, onHome, onStartNationalQuiz, onStart
           リセット
         </button>
         <button type="button" className="ghost-button compact" onClick={onHome}>
-          モード選択
+          モードを選ぶ
         </button>
       </HeaderBar>
 
-      <section className="play-status" aria-label="クイズ状況">
+      <section className="play-status" aria-label="クイズのようす">
         <TimeAttackPanel elapsedSeconds={timer.elapsedSeconds} bestTime={bestTime} />
         <ProgressPanel
           placedCount={Math.min(questionIndex + (locked ? 1 : 0), Math.max(questions.length, 1))}
@@ -244,35 +309,36 @@ export function CapitalQuizMode({ regionId, onHome, onStartNationalQuiz, onStart
           mistakes={mistakes}
         />
         <p className="status-message" aria-live="polite">
-          {isReview ? "復習中" : regionId ? regionById.get(regionId)?.name : "全国 県庁所在地クイズ"} / {feedback}
+          {isReview ? "ふくしゅう中" : getQuizModeLabel(variant, regionId)} / {feedback}
         </p>
       </section>
 
       <section className="quiz-main">
-        <div className="quiz-card" aria-live="polite">
-          <p className="quiz-step">{isReview ? "復習問題" : "4択クイズ"}</p>
-          <h1>{currentQuestion ? `${currentQuestion.name}の県庁所在地は？` : "準備中"}</h1>
-          <div className="option-grid">
+        <div className={`quiz-card ${locked ? (selectedOption && options.find((option) => option.value === selectedOption)?.isCorrect ? "is-correct" : "is-wrong") : ""}`} aria-live="polite">
+          <p className="quiz-step">
+            {isReview ? "ふくしゅう" : variant === "different-capital" ? "6択とっくん" : "4択クイズ"}
+          </p>
+          <h1>{getQuestionTitle(currentQuestion)}</h1>
+          <div className={`option-grid ${optionCount === 6 ? "has-six-options" : ""}`}>
             {options.map((option) => {
-              const isCorrectOption = option === currentQuestion?.capital;
               const className = [
                 "option-button",
-                locked && selectedOption === option ? "is-selected" : "",
-                locked && isCorrectOption ? "is-correct" : "",
-                locked && selectedOption === option && !isCorrectOption ? "is-wrong" : ""
+                locked && selectedOption === option.value ? "is-selected" : "",
+                locked && option.isCorrect ? "is-correct" : "",
+                locked && selectedOption === option.value && !option.isCorrect ? "is-wrong" : ""
               ]
                 .filter(Boolean)
                 .join(" ");
 
               return (
                 <button
-                  key={option}
+                  key={`${option.prefectureId}-${option.value}`}
                   type="button"
                   className={className}
                   disabled={phase !== "playing" || locked}
                   onClick={() => handleOption(option)}
                 >
-                  {option}
+                  <RubyName label={option.label} kana={option.kana} />
                 </button>
               );
             })}
@@ -285,11 +351,11 @@ export function CapitalQuizMode({ regionId, onHome, onStartNationalQuiz, onStart
             viewBox={viewport.viewBox}
             placedIds={new Set()}
             scopeIds={scopeIds}
-            targetId={currentQuestion?.id}
-            hintedId={locked ? currentQuestion?.id : undefined}
+            targetId={currentQuestion?.prefecture.id}
+            hintedId={locked ? currentQuestion?.prefecture.id : undefined}
           />
           <ZoomControls
-            fitLabel={regionId ? "この地方を表示" : "出題範囲を表示"}
+            fitLabel={regionId ? "この地方を見る" : "出るはんいを見る"}
             onZoomIn={viewport.zoomIn}
             onZoomOut={viewport.zoomOut}
             onFit={handleFit}
@@ -306,7 +372,7 @@ export function CapitalQuizMode({ regionId, onHome, onStartNationalQuiz, onStart
       {result ? (
         <ResultModal
           result={result}
-          totalCount={scopePrefectures.length}
+          totalCount={quizPrefectures.length}
           onRetry={handleRetry}
           onNextRegion={regionId ? handleNextRegion : undefined}
           onHome={onHome}

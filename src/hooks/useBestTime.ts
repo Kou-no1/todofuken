@@ -8,7 +8,7 @@ export function getBestTimeKey(mode: GameMode, regionId?: string): string {
     return `${STORAGE_PREFIX}:${mode}:${regionId ?? "unknown"}`;
   }
 
-  if (mode === "capital-quiz" || mode === "capital-label" || mode === "capital-pin") {
+  if (mode === "capital-quiz" || mode === "capital-quiz-special" || mode === "capital-label" || mode === "capital-pin") {
     return `${STORAGE_PREFIX}:${mode}:${regionId ?? "national"}`;
   }
 

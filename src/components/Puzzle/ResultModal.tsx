@@ -31,10 +31,14 @@ function getModeLabel(mode: GameMode, regionId?: string): string {
   }
 
   if (mode === "capital-quiz") {
-    return regionId ? `${regionById.get(regionId)?.name ?? "地方"} 県庁所在地クイズ` : "全国 県庁所在地クイズ";
+    return regionId ? `${regionById.get(regionId)?.name ?? "地方"} 市名クイズ` : "全国 市名クイズ";
   }
 
-  return "学習モード";
+  if (mode === "capital-quiz-special") {
+    return "県名とちがう市 とっくん";
+  }
+
+  return "学ぶモード";
 }
 
 function getResultMessage(result: PuzzleResult, showTimeTitle: boolean, title: ReturnType<typeof getTimeTitle>) {
@@ -43,8 +47,8 @@ function getResultMessage(result: PuzzleResult, showTimeTitle: boolean, title: R
   }
 
   return result.isNewBest
-    ? "いいペースでクリアできました。次も楽しく挑戦しましょう。"
-    : "最後までクリア！次は自己ベストをねらいましょう。";
+    ? "いいペースでクリア！つぎも楽しくちょうせんしよう。"
+    : "最後までクリア！つぎはじぶんのベストをねらおう。";
 }
 
 export function ResultModal({ result, totalCount, onRetry, onNextRegion, onNational: _onNational, onHome }: ResultModalProps) {
@@ -53,10 +57,10 @@ export function ResultModal({ result, totalCount, onRetry, onNextRegion, onNatio
   const showTimeTitle = result.mode === "prefecture-national";
   const resultMessage = getResultMessage(result, showTimeTitle, title);
   const titleProgressMessage = nextGap.isTopTitle
-    ? "最上位称号達成！"
-    : `次の称号まであと${nextGap.secondsNeeded}秒`;
+    ? "さいじょういしょうごう たっせい！"
+    : `つぎのしょうごうまであと${nextGap.secondsNeeded}秒`;
   const compactMessage = [
-    result.isNewBest ? "自己ベスト更新！" : "",
+    result.isNewBest ? "じぶんのベストこうしん！" : "",
     showTimeTitle ? titleProgressMessage : ""
   ]
     .filter(Boolean)
@@ -96,7 +100,7 @@ export function ResultModal({ result, totalCount, onRetry, onNextRegion, onNatio
             </button>
           ) : null}
           <button type="button" className="ghost-button" onClick={onHome}>
-            モード選択へ
+            モードを選ぶ
           </button>
         </div>
       </section>

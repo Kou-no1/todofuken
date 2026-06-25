@@ -7,7 +7,7 @@ type ZoomControlsProps = {
 
 export function ZoomControls({ fitLabel, onZoomIn, onZoomOut, onFit }: ZoomControlsProps) {
   return (
-    <div className="zoom-controls" aria-label="地図の表示切り替え">
+    <div className="zoom-controls" aria-label="地図の見え方を変える">
       <button type="button" onClick={onZoomIn} aria-label="ズームイン">
         +
       </button>

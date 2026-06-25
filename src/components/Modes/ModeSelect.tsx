@@ -1,13 +1,14 @@
+import type { ReactNode } from "react";
 import { loadBestTime } from "../../hooks/useBestTime";
 import { formatClock } from "../../utils/timeFormat";
 
 type ModeCardProps = {
   className: string;
   emoji: string;
-  label: string;
-  title: string;
-  description: string;
-  meta: string;
+  label: ReactNode;
+  title: ReactNode;
+  description: ReactNode;
+  meta: ReactNode;
   onClick: () => void;
 };
 
@@ -35,6 +36,15 @@ function ModeCard({ className, emoji, label, title, description, meta, onClick }
   );
 }
 
+function RubyText({ label, kana }: { label: string; kana: string }) {
+  return (
+    <ruby>
+      {label}
+      <rt>{kana}</rt>
+    </ruby>
+  );
+}
+
 export function ModeSelect({
   onNationalLearn,
   onNationalTimeAttack,
@@ -54,14 +64,14 @@ export function ModeSelect({
         <p className="hero-copy">形を見て、場所を思い出して、都道府県を覚えよう！</p>
       </section>
 
-      <section className="mode-grid" aria-label="モード選択">
+      <section className="mode-grid" aria-label="モードを選ぶ">
         <ModeCard
           className="mode-card primary-mode mode-red"
           emoji="⏱️"
           label="タイムアタック"
           title="全国47ピース"
-          description="赤いガイドなしで自己ベストに挑戦"
-          meta={nationalBest ? `ベスト ${formatClock(nationalBest.bestTimeSeconds)}` : "まずは挑戦"}
+          description="赤いガイドなしでじぶんのベストにちょうせん"
+          meta={nationalBest ? `ベスト ${formatClock(nationalBest.bestTimeSeconds)}` : "まずはちょうせん"}
           onClick={onNationalTimeAttack}
         />
         <ModeCard
@@ -77,9 +87,9 @@ export function ModeSelect({
           className="mode-card mode-blue"
           emoji="🚀"
           label="地方タイムアタック"
-          title="地方別に挑戦"
-          description="ガイドなしで6地方を少しずつ攻略"
-          meta="地方ごとにベスト保存"
+          title="地方ごとにちょうせん"
+          description="ガイドなしで6地方を少しずつこうりゃく"
+          meta="地方ごとにベストをのこす"
           onClick={onRegionTimeAttack}
         />
         <ModeCard
@@ -94,10 +104,15 @@ export function ModeSelect({
         <ModeCard
           className="mode-card mode-purple"
           emoji="🏫"
-          label="県庁所在地モード"
+          label="市名クイズ"
           title="4択クイズ"
-          description="県名から県庁所在地を選ぶ"
-          meta={quizBest ? `全国ベスト ${formatClock(quizBest.bestTimeSeconds)}` : "タイムも記録"}
+          description={
+            <>
+              <RubyText label="県庁所在地" kana="けんちょうしょざいち" />
+              を選ぶ
+            </>
+          }
+          meta={quizBest ? `全国ベスト ${formatClock(quizBest.bestTimeSeconds)}` : "タイムものこす"}
           onClick={onCapitalQuiz}
         />
       </section>

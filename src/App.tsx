@@ -5,6 +5,7 @@ import { ModeSelect } from "./components/Modes/ModeSelect";
 import { PrefecturePuzzleMode } from "./components/Modes/PrefecturePuzzleMode";
 import { RegionSelect } from "./components/Modes/RegionSelect";
 import type { PuzzlePlayMode } from "./types/puzzle";
+import type { CapitalQuizVariant } from "./utils/capitalQuiz";
 
 type Screen = "home" | "region-puzzle-select" | "region-quiz-select" | "prefecture-puzzle" | "capital-quiz";
 
@@ -12,6 +13,7 @@ export function App() {
   const [screen, setScreen] = useState<Screen>("home");
   const [selectedRegionId, setSelectedRegionId] = useState<string | undefined>(undefined);
   const [puzzlePlayMode, setPuzzlePlayMode] = useState<PuzzlePlayMode>("time-attack");
+  const [capitalQuizVariant, setCapitalQuizVariant] = useState<CapitalQuizVariant>("standard");
 
   const startNationalPuzzle = (playMode: PuzzlePlayMode = "time-attack") => {
     setPuzzlePlayMode(playMode);
@@ -30,14 +32,20 @@ export function App() {
     setScreen("region-puzzle-select");
   };
 
-  const startNationalQuiz = () => {
+  const startNationalQuiz = (variant: CapitalQuizVariant = "standard") => {
+    setCapitalQuizVariant(variant);
     setSelectedRegionId(undefined);
     setScreen("capital-quiz");
   };
 
   const startRegionQuiz = (regionId: string) => {
+    setCapitalQuizVariant("standard");
     setSelectedRegionId(regionId);
     setScreen("capital-quiz");
+  };
+
+  const startDifferentCapitalQuiz = () => {
+    startNationalQuiz("different-capital");
   };
 
   const goHome = () => {
@@ -59,11 +67,11 @@ export function App() {
 
       {screen === "region-puzzle-select" ? (
         <RegionSelect
-          title={puzzlePlayMode === "learn" ? "地方別 覚えるモード" : "地方別 タイムアタック"}
+          title={puzzlePlayMode === "learn" ? "地方ごとにおぼえる" : "地方タイムアタック"}
           description={
             puzzlePlayMode === "learn"
-              ? "赤いガイドを見ながら、地方ごとに形と位置を覚えましょう。"
-              : "ガイドなしで、地方ごとの自己ベストに挑戦しましょう。"
+              ? "赤いガイドを見ながら、地方ごとに形と場所をおぼえよう。"
+              : "ガイドなしで、地方ごとのじぶんのベストにちょうせんしよう。"
           }
           mode={puzzlePlayMode === "learn" ? "prefecture-learn-region" : "prefecture-region"}
           onSelectRegion={(regionId) => startRegionPuzzle(regionId, puzzlePlayMode)}
@@ -73,12 +81,30 @@ export function App() {
 
       {screen === "region-quiz-select" ? (
         <RegionSelect
-          title="県庁所在地モード"
-          description="県名を見て、県庁所在地を4択から選びます。"
+          title={
+            <>
+              <ruby>
+                県庁所在地<rt>けんちょうしょざいち</rt>
+              </ruby>
+              クイズ
+            </>
+          }
+          description="県名から市名、市名から県名を選ぶもんだいが出ます。"
           mode="capital-quiz"
           includeNational
-          onSelectNational={startNationalQuiz}
+          onSelectNational={() => startNationalQuiz()}
           onSelectRegion={startRegionQuiz}
+          extraCards={[
+            {
+              emoji: "🎯",
+              label: "6択とっくん",
+              title: "県名とちがう市",
+              description: "よくまちがえるところだけを、6つから選ぼう。",
+              meta: "ベストは別にのこります",
+              onClick: startDifferentCapitalQuiz,
+              mode: "capital-quiz-special"
+            }
+          ]}
           onBack={goHome}
         />
       ) : null}
@@ -96,8 +122,8 @@ export function App() {
       {screen === "capital-quiz" ? (
         <CapitalQuizMode
           regionId={selectedRegionId}
+          variant={capitalQuizVariant}
           onHome={goHome}
-          onStartNationalQuiz={startNationalQuiz}
           onStartRegionQuiz={startRegionQuiz}
         />
       ) : null}

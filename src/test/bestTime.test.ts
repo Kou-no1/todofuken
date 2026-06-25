@@ -37,15 +37,18 @@ describe("best time storage", () => {
     saveBestTimeIfImproved("prefecture-region", "kanto", 45, 1);
     saveBestTimeIfImproved("prefecture-learn-region", "chubu", 70, 0);
     saveBestTimeIfImproved("capital-quiz", undefined, 80, 3);
+    saveBestTimeIfImproved("capital-quiz-special", undefined, 75, 1);
 
     expect(loadBestTime("prefecture-national")?.bestTimeSeconds).toBe(100);
     expect(loadBestTime("prefecture-region", "chubu")?.bestTimeSeconds).toBe(40);
     expect(loadBestTime("prefecture-region", "kanto")?.bestTimeSeconds).toBe(45);
     expect(loadBestTime("prefecture-learn-region", "chubu")?.bestTimeSeconds).toBe(70);
     expect(loadBestTime("capital-quiz")?.bestTimeSeconds).toBe(80);
+    expect(loadBestTime("capital-quiz-special")?.bestTimeSeconds).toBe(75);
     expect(getBestTimeKey("prefecture-region", "chubu")).toBe("pref-puzzle:best:prefecture-region:chubu");
     expect(getBestTimeKey("prefecture-learn-region", "chubu")).toBe("pref-puzzle:best:prefecture-learn-region:chubu");
     expect(getBestTimeKey("capital-quiz")).toBe("pref-puzzle:best:capital-quiz:national");
+    expect(getBestTimeKey("capital-quiz-special")).toBe("pref-puzzle:best:capital-quiz-special:national");
   });
 
   it("keeps the better record", () => {

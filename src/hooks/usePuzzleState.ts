@@ -13,7 +13,7 @@ export function usePuzzleState(prefectureIds: string[]) {
 
   const placeCorrect = useCallback((prefectureId: string, prefectureName: string) => {
     setPlacedIds((current) => new Set(current).add(prefectureId));
-    setFeedback(`${prefectureName}、正解！その調子です。`);
+    setFeedback(`${prefectureName}、せいかい！その調子です。`);
   }, []);
 
   const markMistake = useCallback((prefectureName: string) => {
