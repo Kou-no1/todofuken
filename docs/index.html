@@ -15,7 +15,7 @@
     <div id="root"></div>
     <script>
       if (location.hostname === "kou-no1.github.io" && !location.pathname.startsWith("/todofuken/docs/")) {
-        location.replace("/todofuken/docs/");
+        location.replace(`/todofuken/docs/index.html${location.search || "?v=latest"}`);
       }
     </script>
   </body>
