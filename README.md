@@ -15,6 +15,12 @@ npm run dev
 npm run build
 ```
 
+GitHub Pages用ビルド:
+
+```bash
+npm run build:pages
+```
+
 テスト:
 
 ```bash

@@ -1,4 +1,5 @@
 node_modules/
 dist/
 dev-server.*.log
+pages-preview.*.log
 .DS_Store
