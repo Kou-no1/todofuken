@@ -15,11 +15,19 @@ type ResultModalProps = {
 
 function getModeLabel(mode: GameMode, regionId?: string): string {
   if (mode === "prefecture-national") {
-    return "全国モード";
+    return "全国タイムアタック";
+  }
+
+  if (mode === "prefecture-learn-national") {
+    return "全国 覚えるモード";
   }
 
   if (mode === "prefecture-region") {
-    return regionById.get(regionId ?? "")?.name ?? "地方モード";
+    return `${regionById.get(regionId ?? "")?.name ?? "地方モード"} タイムアタック`;
+  }
+
+  if (mode === "prefecture-learn-region") {
+    return `${regionById.get(regionId ?? "")?.name ?? "地方モード"} 覚えるモード`;
   }
 
   if (mode === "capital-quiz") {

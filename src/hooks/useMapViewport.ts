@@ -10,7 +10,7 @@ export function useMapViewport(regionId?: string) {
   }, [regionId]);
 
   const focusJapan = useCallback(() => setViewBox(fitToJapan()), []);
-  const focusRegion = useCallback((nextRegionId: string) => setViewBox(fitToRegion(nextRegionId)), []);
+  const focusRegion = useCallback((nextRegionId: string, padding?: number) => setViewBox(fitToRegion(nextRegionId, padding)), []);
   const focusPrefecture = useCallback((prefectureId: string, padding?: number) => {
     setViewBox(fitToPrefecture(prefectureId, padding));
   }, []);

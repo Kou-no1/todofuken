@@ -43,9 +43,13 @@ export type TimeTitle = {
 export type GameMode =
   | "prefecture-national"
   | "prefecture-region"
+  | "prefecture-learn-national"
+  | "prefecture-learn-region"
   | "capital-quiz"
   | "capital-label"
   | "capital-pin";
+
+export type PuzzlePlayMode = "learn" | "time-attack";
 
 export type BestTimeRecord = {
   mode: GameMode;

@@ -17,18 +17,21 @@ import { useDragAndDrop } from "../../hooks/useDragAndDrop";
 import { useMapViewport } from "../../hooks/useMapViewport";
 import { usePuzzleState } from "../../hooks/usePuzzleState";
 import { useTimer } from "../../hooks/useTimer";
-import type { GameMode, Prefecture, PuzzleResult } from "../../types/puzzle";
+import type { GameMode, Prefecture, PuzzlePlayMode, PuzzleResult } from "../../types/puzzle";
 import { isDropCorrect, pointFromClientPosition } from "../../utils/geometry";
 import { shuffle } from "../../utils/shuffle";
 
 type PrefecturePuzzleModeProps = {
+  playMode: PuzzlePlayMode;
   regionId?: string;
   onHome: () => void;
-  onStartNational: () => void;
-  onStartRegion: (regionId: string) => void;
+  onStartNational: (playMode?: PuzzlePlayMode) => void;
+  onStartRegion: (regionId: string, playMode?: PuzzlePlayMode) => void;
 };
 
 type PuzzlePhase = "countdown" | "playing" | "complete";
+
+const REGION_FOCUS_PADDING = 110;
 
 function getScopePrefectures(regionId?: string): Prefecture[] {
   if (!regionId) {
@@ -45,12 +48,32 @@ function getScopePrefectures(regionId?: string): Prefecture[] {
     .filter((prefecture): prefecture is Prefecture => Boolean(prefecture));
 }
 
-export function PrefecturePuzzleMode({ regionId, onHome, onStartNational, onStartRegion }: PrefecturePuzzleModeProps) {
-  const mode: GameMode = regionId ? "prefecture-region" : "prefecture-national";
+function getPuzzleGameMode(playMode: PuzzlePlayMode, regionId?: string): GameMode {
+  if (playMode === "learn") {
+    return regionId ? "prefecture-learn-region" : "prefecture-learn-national";
+  }
+
+  return regionId ? "prefecture-region" : "prefecture-national";
+}
+
+function getModeText(playMode: PuzzlePlayMode, regionId?: string) {
+  const scope = regionId ? regionById.get(regionId)?.name ?? "地方モード" : "全国";
+  return playMode === "learn" ? `${scope} 覚えるモード` : `${scope} タイムアタック`;
+}
+
+export function PrefecturePuzzleMode({
+  playMode,
+  regionId,
+  onHome,
+  onStartNational,
+  onStartRegion
+}: PrefecturePuzzleModeProps) {
+  const mode = getPuzzleGameMode(playMode, regionId);
+  const isLearningMode = playMode === "learn";
   const scopePrefectures = useMemo(() => getScopePrefectures(regionId), [regionId]);
   const scopeIds = useMemo(() => new Set(scopePrefectures.map((prefecture) => prefecture.id)), [scopePrefectures]);
   const scopeIdList = useMemo(() => scopePrefectures.map((prefecture) => prefecture.id), [scopePrefectures]);
-  const scopeKey = regionId ?? "national";
+  const scopeKey = `${regionId ?? "national"}:${playMode}`;
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [runId, setRunId] = useState(0);
   const [phase, setPhase] = useState<PuzzlePhase>("countdown");
@@ -157,10 +180,10 @@ export function PrefecturePuzzleMode({ regionId, onHome, onStartNational, onStar
         }
       } else {
         puzzle.markMistake(target.name);
-        setHintedId(target.id);
+        setHintedId(isLearningMode ? target.id : undefined);
       }
     },
-    [completePuzzle, drag, phase, puzzle, scopeIdList.length, viewport.viewBox]
+    [completePuzzle, drag, isLearningMode, phase, puzzle, scopeIdList.length, viewport.viewBox]
   );
 
   useEffect(() => {
@@ -203,19 +226,23 @@ export function PrefecturePuzzleMode({ regionId, onHome, onStartNational, onStar
       }
 
       drag.startDrag(prefecture.id, event.clientX, event.clientY);
-      setTargetId(prefecture.id);
+      setTargetId(isLearningMode ? prefecture.id : undefined);
       setHintedId(undefined);
 
       if (regionId) {
-        viewport.fitToRegion(regionId);
+        viewport.fitToRegion(regionId, REGION_FOCUS_PADDING);
       } else {
-        viewport.fitToRegion(prefecture.regionId);
+        viewport.fitToRegion(prefecture.regionId, REGION_FOCUS_PADDING);
       }
 
       const regionName = regionById.get(prefecture.regionId)?.name ?? "この地方";
-      puzzle.setFeedback(`${prefecture.name}は${regionName}にあります。地図が近づきました。`);
+      puzzle.setFeedback(
+        isLearningMode
+          ? `${prefecture.name}は${regionName}にあります。赤いガイドを見ながら置けます。`
+          : `${prefecture.name}は${regionName}にあります。ガイドなしで場所を思い出しましょう。`
+      );
     },
-    [drag, phase, puzzle, regionId, viewport]
+    [drag, isLearningMode, phase, puzzle, regionId, viewport]
   );
 
   const handleHint = useCallback(() => {
@@ -224,15 +251,19 @@ export function PrefecturePuzzleMode({ regionId, onHome, onStartNational, onStar
       return;
     }
 
-    setHintedId(target.id);
-    viewport.fitToPrefecture(target.id, 95);
+    setHintedId(isLearningMode ? target.id : undefined);
+    viewport.fitToRegion(regionId ?? target.regionId, REGION_FOCUS_PADDING);
     const regionName = regionById.get(target.regionId)?.name ?? "この地方";
-    puzzle.setFeedback(`${target.name}は${regionName}。県庁所在地は${target.capital}です。光っている場所を見てみよう。`);
-  }, [activePrefecture, puzzle, remainingPrefectures, viewport]);
+    puzzle.setFeedback(
+      isLearningMode
+        ? `${target.name}は${regionName}。県庁所在地は${target.capital}です。赤いガイドを見て覚えよう。`
+        : `${target.name}は${regionName}。県庁所在地は${target.capital}です。地図を広く見て探してみよう。`
+    );
+  }, [activePrefecture, isLearningMode, puzzle, regionId, remainingPrefectures, viewport]);
 
   const handleFit = useCallback(() => {
     if (regionId) {
-      viewport.fitToRegion(regionId);
+      viewport.fitToRegion(regionId, REGION_FOCUS_PADDING);
     } else {
       viewport.fitToJapan();
     }
@@ -249,8 +280,8 @@ export function PrefecturePuzzleMode({ regionId, onHome, onStartNational, onStar
 
     const currentIndex = regions.findIndex((region) => region.id === regionId);
     const nextRegion = regions[(currentIndex + 1) % regions.length];
-    onStartRegion(nextRegion.id);
-  }, [onStartRegion, regionId]);
+    onStartRegion(nextRegion.id, playMode);
+  }, [onStartRegion, playMode, regionId]);
 
   return (
     <main className="puzzle-screen">
@@ -267,7 +298,7 @@ export function PrefecturePuzzleMode({ regionId, onHome, onStartNational, onStar
         <TimeAttackPanel elapsedSeconds={timer.elapsedSeconds} bestTime={bestTime} />
         <ProgressPanel placedCount={puzzle.placedCount} totalCount={puzzle.totalCount} mistakes={puzzle.mistakes} />
         <p className="status-message" aria-live="polite">
-          {regionId ? regionById.get(regionId)?.name : "全国モード"} / {puzzle.feedback}
+          {getModeText(playMode, regionId)} / {puzzle.feedback}
         </p>
       </section>
 
@@ -277,8 +308,8 @@ export function PrefecturePuzzleMode({ regionId, onHome, onStartNational, onStar
           viewBox={viewport.viewBox}
           placedIds={puzzle.placedIds}
           scopeIds={scopeIds}
-          targetId={targetId}
-          hintedId={hintedId}
+          targetId={isLearningMode ? targetId : undefined}
+          hintedId={isLearningMode ? hintedId : undefined}
         />
         <MiniMap viewBox={viewport.viewBox} scopeIds={scopeIds} />
         <ZoomControls
@@ -288,7 +319,11 @@ export function PrefecturePuzzleMode({ regionId, onHome, onStartNational, onStar
           onFit={handleFit}
         />
         <HintPanel
-          message={activePrefecture ? `${activePrefecture.name}を持っています。` : "困ったらヒントで場所を光らせます。"}
+          message={
+            isLearningMode
+              ? "覚えるモードでは赤いガイドを見ながら練習できます。"
+              : "タイムアタックでは赤いガイドなしで挑戦します。"
+          }
           targetName={activePrefecture?.name ?? remainingPrefectures[0]?.name}
           onHint={handleHint}
         />
@@ -318,7 +353,7 @@ export function PrefecturePuzzleMode({ regionId, onHome, onStartNational, onStar
           totalCount={scopeIdList.length}
           onRetry={handleRetry}
           onNextRegion={regionId ? handleNextRegion : undefined}
-          onNational={regionId ? onStartNational : undefined}
+          onNational={regionId ? () => onStartNational(playMode) : undefined}
           onHome={onHome}
         />
       ) : null}

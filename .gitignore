@@ -2,4 +2,6 @@ node_modules/
 dist/
 dev-server.*.log
 pages-preview.*.log
+prefectures.source.geojson
 .DS_Store
+.codex-remote-attachments/

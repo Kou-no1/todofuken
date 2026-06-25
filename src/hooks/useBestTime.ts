@@ -4,7 +4,7 @@ import type { BestTimeRecord, GameMode } from "../types/puzzle";
 const STORAGE_PREFIX = "pref-puzzle:best";
 
 export function getBestTimeKey(mode: GameMode, regionId?: string): string {
-  if (mode === "prefecture-region") {
+  if (mode === "prefecture-region" || mode === "prefecture-learn-region") {
     return `${STORAGE_PREFIX}:${mode}:${regionId ?? "unknown"}`;
   }
 

@@ -3,13 +3,22 @@ import { loadBestTime } from "../../hooks/useBestTime";
 import { formatClock } from "../../utils/timeFormat";
 
 type ModeSelectProps = {
-  onNationalPuzzle: () => void;
-  onRegionPuzzle: () => void;
+  onNationalLearn: () => void;
+  onNationalTimeAttack: () => void;
+  onRegionLearn: () => void;
+  onRegionTimeAttack: () => void;
   onCapitalQuiz: () => void;
 };
 
-export function ModeSelect({ onNationalPuzzle, onRegionPuzzle, onCapitalQuiz }: ModeSelectProps) {
+export function ModeSelect({
+  onNationalLearn,
+  onNationalTimeAttack,
+  onRegionLearn,
+  onRegionTimeAttack,
+  onCapitalQuiz
+}: ModeSelectProps) {
   const nationalBest = loadBestTime("prefecture-national");
+  const learnBest = loadBestTime("prefecture-learn-national");
   const quizBest = loadBestTime("capital-quiz");
 
   return (
@@ -17,20 +26,32 @@ export function ModeSelect({ onNationalPuzzle, onRegionPuzzle, onCapitalQuiz }: 
       <section className="home-hero" aria-labelledby="home-title">
         <p className="hero-kicker">小学校4年生向け 日本地図パズル</p>
         <h1 id="home-title">{APP_NAME}</h1>
-        <p className="hero-copy">ピースを地図に置いて、都道府県の場所を覚えよう！</p>
+        <p className="hero-copy">形を見て、場所を思い出して、都道府県を覚えよう！</p>
       </section>
 
       <section className="mode-grid" aria-label="モード選択">
-        <button type="button" className="mode-card primary-mode" onClick={onNationalPuzzle}>
-          <span className="mode-label">全国モード</span>
-          <strong>47都道府県パズル</strong>
-          <span>全部のピースに挑戦</span>
+        <button type="button" className="mode-card primary-mode" onClick={onNationalTimeAttack}>
+          <span className="mode-label">タイムアタック</span>
+          <strong>全国47ピース</strong>
+          <span>赤いガイドなしで自己ベストに挑戦</span>
           {nationalBest ? <small>ベスト {formatClock(nationalBest.bestTimeSeconds)}</small> : <small>まずは挑戦</small>}
         </button>
-        <button type="button" className="mode-card" onClick={onRegionPuzzle}>
-          <span className="mode-label">地方モード</span>
+        <button type="button" className="mode-card" onClick={onNationalLearn}>
+          <span className="mode-label">覚えるモード</span>
+          <strong>全国を練習</strong>
+          <span>赤いガイドを見ながら形と場所を覚える</span>
+          {learnBest ? <small>練習ベスト {formatClock(learnBest.bestTimeSeconds)}</small> : <small>ゆっくり練習</small>}
+        </button>
+        <button type="button" className="mode-card" onClick={onRegionTimeAttack}>
+          <span className="mode-label">地方タイムアタック</span>
+          <strong>地方別に挑戦</strong>
+          <span>ガイドなしで6地方を少しずつ攻略</span>
+          <small>地方ごとにベスト保存</small>
+        </button>
+        <button type="button" className="mode-card" onClick={onRegionLearn}>
+          <span className="mode-label">地方で覚える</span>
           <strong>少しずつ練習</strong>
-          <span>6つの地方から選べます</span>
+          <span>赤いガイドつきで地方ごとに覚える</span>
           <small>北海道・東北から九州・沖縄まで</small>
         </button>
         <button type="button" className="mode-card" onClick={onCapitalQuiz}>
