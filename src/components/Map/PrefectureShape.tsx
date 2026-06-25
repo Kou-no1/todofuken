@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+import { getRegionColor } from "../../data/regionColors";
 import type { Prefecture } from "../../types/puzzle";
 
 type PrefectureShapeProps = {
@@ -6,27 +8,74 @@ type PrefectureShapeProps = {
   isInScope: boolean;
   isTarget: boolean;
   isHinted: boolean;
+  isDropPreview: boolean;
+  isRecent: boolean;
 };
 
-export function PrefectureShape({ prefecture, isPlaced, isInScope, isTarget, isHinted }: PrefectureShapeProps) {
+function shortName(name: string) {
+  return name.replace(/[都道府県]$/, "");
+}
+
+function shouldShowLabel(prefecture: Prefecture, isRecent: boolean) {
+  if (isRecent) {
+    return true;
+  }
+
+  return prefecture.bbox.width >= 34 && prefecture.bbox.height >= 22;
+}
+
+export function PrefectureShape({
+  prefecture,
+  isPlaced,
+  isInScope,
+  isTarget,
+  isHinted,
+  isDropPreview,
+  isRecent
+}: PrefectureShapeProps) {
+  const color = getRegionColor(prefecture.regionId);
+  const label = shortName(prefecture.name);
+  const labelWidth = Math.max(28, Math.min(58, label.length * 12 + 14));
+  const showLabel = isPlaced && shouldShowLabel(prefecture, isRecent);
   const classNames = [
     "prefecture-shape",
     isPlaced ? "is-placed" : "",
     isInScope ? "is-in-scope" : "is-out-scope",
     isTarget ? "is-target" : "",
-    isHinted ? "is-hinted" : ""
+    isHinted ? "is-hinted" : "",
+    isDropPreview ? "is-drop-preview" : "",
+    isRecent ? "is-recent" : ""
   ]
     .filter(Boolean)
     .join(" ");
 
   return (
-    <g className={classNames}>
+    <g
+      className={classNames}
+      style={
+        {
+          "--region-main": color.main,
+          "--region-soft": color.soft,
+          "--region-ink": color.ink,
+          "--region-sparkle": color.sparkle
+        } as CSSProperties
+      }
+    >
       <path d={prefecture.path} />
-      {(isPlaced || isHinted) && (
-        <text x={prefecture.centroid.x} y={prefecture.centroid.y + 5} textAnchor="middle" aria-hidden="true">
-          {prefecture.name.replace(/[都道府県]$/, "")}
-        </text>
-      )}
+      {showLabel ? (
+        <g className="prefecture-label" aria-hidden="true">
+          <rect
+            x={prefecture.centroid.x - labelWidth / 2}
+            y={prefecture.centroid.y - 10}
+            width={labelWidth}
+            height="18"
+            rx="9"
+          />
+          <text x={prefecture.centroid.x} y={prefecture.centroid.y + 3} textAnchor="middle">
+            {label}
+          </text>
+        </g>
+      ) : null}
     </g>
   );
 }

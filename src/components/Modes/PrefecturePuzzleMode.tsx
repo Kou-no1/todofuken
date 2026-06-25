@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent
+} from "react";
 import { BottomTray } from "../Layout/BottomTray";
 import { HeaderBar } from "../Layout/HeaderBar";
 import { JapanMap } from "../Map/JapanMap";
@@ -10,6 +18,7 @@ import { ProgressPanel } from "../Puzzle/ProgressPanel";
 import { PuzzlePiece } from "../Puzzle/PuzzlePiece";
 import { ResultModal } from "../Puzzle/ResultModal";
 import { TimeAttackPanel } from "../Puzzle/TimeAttackPanel";
+import { getRegionColor } from "../../data/regionColors";
 import { prefectureById, prefectures } from "../../data/prefectures";
 import { regionById, regions } from "../../data/regions";
 import { useBestTime } from "../../hooks/useBestTime";
@@ -31,7 +40,15 @@ type PrefecturePuzzleModeProps = {
 
 type PuzzlePhase = "countdown" | "playing" | "complete";
 
+type Celebration = {
+  id: number;
+  x: number;
+  y: number;
+  color: string;
+};
+
 const REGION_FOCUS_PADDING = 110;
+const SOUND_STORAGE_KEY = "pref-puzzle:settings:sound";
 
 function getScopePrefectures(regionId?: string): Prefecture[] {
   if (!regionId) {
@@ -57,8 +74,47 @@ function getPuzzleGameMode(playMode: PuzzlePlayMode, regionId?: string): GameMod
 }
 
 function getModeText(playMode: PuzzlePlayMode, regionId?: string) {
-  const scope = regionId ? regionById.get(regionId)?.name ?? "地方モード" : "全国";
+  const scope = regionId ? regionById.get(regionId)?.name ?? "地方" : "全国";
   return playMode === "learn" ? `${scope} 覚えるモード` : `${scope} タイムアタック`;
+}
+
+function playTone(kind: "correct" | "wrong", soundOn: boolean) {
+  if (!soundOn) {
+    return;
+  }
+
+  const AudioContextCtor =
+    window.AudioContext ??
+    (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+
+  if (!AudioContextCtor) {
+    return;
+  }
+
+  const context = new AudioContextCtor();
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  const now = context.currentTime;
+
+  oscillator.type = kind === "correct" ? "triangle" : "sine";
+  oscillator.frequency.setValueAtTime(kind === "correct" ? 520 : 220, now);
+  oscillator.frequency.exponentialRampToValueAtTime(kind === "correct" ? 860 : 170, now + 0.16);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(kind === "correct" ? 0.12 : 0.08, now + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+  oscillator.connect(gain);
+  gain.connect(context.destination);
+  oscillator.start(now);
+  oscillator.stop(now + 0.22);
+  window.setTimeout(() => context.close(), 260);
+}
+
+function getStoredSoundSetting() {
+  if (typeof localStorage === "undefined") {
+    return false;
+  }
+
+  return localStorage.getItem(SOUND_STORAGE_KEY) === "on";
 }
 
 export function PrefecturePuzzleMode({
@@ -81,6 +137,11 @@ export function PrefecturePuzzleMode({
   const [pieceOrder, setPieceOrder] = useState<string[]>([]);
   const [targetId, setTargetId] = useState<string | undefined>();
   const [hintedId, setHintedId] = useState<string | undefined>();
+  const [dropPreviewId, setDropPreviewId] = useState<string | undefined>();
+  const [recentPlacedId, setRecentPlacedId] = useState<string | undefined>();
+  const [missWobbleId, setMissWobbleId] = useState<string | undefined>();
+  const [celebration, setCelebration] = useState<Celebration | null>(null);
+  const [soundOn, setSoundOn] = useState(getStoredSoundSetting);
   const [result, setResult] = useState<PuzzleResult | null>(null);
 
   const timer = useTimer();
@@ -96,6 +157,10 @@ export function PrefecturePuzzleMode({
     setResult(null);
     setTargetId(undefined);
     setHintedId(undefined);
+    setDropPreviewId(undefined);
+    setRecentPlacedId(undefined);
+    setMissWobbleId(undefined);
+    setCelebration(null);
     setPieceOrder(shuffle(scopeIdList));
     setPhase("countdown");
     setCountdown(3);
@@ -132,6 +197,11 @@ export function PrefecturePuzzleMode({
 
   const activePrefecture = drag.activeDrag ? prefectureById.get(drag.activeDrag.prefectureId) : undefined;
 
+  const updateSound = useCallback((nextValue: boolean) => {
+    setSoundOn(nextValue);
+    localStorage.setItem(SOUND_STORAGE_KEY, nextValue ? "on" : "off");
+  }, []);
+
   const completePuzzle = useCallback(
     (finalMistakes: number) => {
       const clearTimeSeconds = timer.stop();
@@ -148,12 +218,32 @@ export function PrefecturePuzzleMode({
     [mode, recordResult, regionId, timer]
   );
 
+  const updateDropPreview = useCallback(
+    (clientX: number, clientY: number) => {
+      const active = drag.activeDrag;
+      const target = active ? prefectureById.get(active.prefectureId) : undefined;
+      const rect = svgRef.current?.getBoundingClientRect();
+
+      if (!active || !target || !rect || phase !== "playing") {
+        setDropPreviewId(undefined);
+        return;
+      }
+
+      const isInsideMap =
+        clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+      const dropPoint = pointFromClientPosition(clientX, clientY, rect, viewport.viewBox);
+      setDropPreviewId(isInsideMap && isDropCorrect(target, dropPoint) ? target.id : undefined);
+    },
+    [drag.activeDrag, phase, viewport.viewBox]
+  );
+
   const finishDrop = useCallback(
     (clientX: number, clientY: number) => {
       const active = drag.activeDrag;
       const target = active ? prefectureById.get(active.prefectureId) : undefined;
       drag.endDrag();
       setTargetId(undefined);
+      setDropPreviewId(undefined);
 
       if (!active || !target || phase !== "playing") {
         return;
@@ -173,17 +263,29 @@ export function PrefecturePuzzleMode({
       if (isCorrect) {
         puzzle.placeCorrect(target.id, target.name);
         setHintedId(undefined);
-        const nextPlacedCount = puzzle.placedIds.size + 1;
+        setRecentPlacedId(target.id);
+        setCelebration({
+          id: Date.now(),
+          x: clientX,
+          y: clientY,
+          color: getRegionColor(target.regionId).sparkle
+        });
+        window.setTimeout(() => setCelebration(null), 720);
+        playTone("correct", soundOn);
 
+        const nextPlacedCount = puzzle.placedIds.size + 1;
         if (nextPlacedCount >= scopeIdList.length) {
           completePuzzle(puzzle.mistakes);
         }
       } else {
         puzzle.markMistake(target.name);
         setHintedId(isLearningMode ? target.id : undefined);
+        setMissWobbleId(target.id);
+        window.setTimeout(() => setMissWobbleId(undefined), 520);
+        playTone("wrong", soundOn);
       }
     },
-    [completePuzzle, drag, isLearningMode, phase, puzzle, scopeIdList.length, viewport.viewBox]
+    [completePuzzle, drag, isLearningMode, phase, puzzle, scopeIdList.length, soundOn, viewport.viewBox]
   );
 
   useEffect(() => {
@@ -194,6 +296,7 @@ export function PrefecturePuzzleMode({
     const handlePointerMove = (event: PointerEvent) => {
       event.preventDefault();
       drag.moveDrag(event.clientX, event.clientY);
+      updateDropPreview(event.clientX, event.clientY);
     };
 
     const handlePointerUp = (event: PointerEvent) => {
@@ -210,7 +313,7 @@ export function PrefecturePuzzleMode({
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerUp);
     };
-  }, [drag.activeDrag, drag.moveDrag, finishDrop]);
+  }, [drag.activeDrag, drag.moveDrag, finishDrop, updateDropPreview]);
 
   const handlePiecePointerDown = useCallback(
     (event: ReactPointerEvent<HTMLButtonElement>, prefecture: Prefecture) => {
@@ -228,6 +331,7 @@ export function PrefecturePuzzleMode({
       drag.startDrag(prefecture.id, event.clientX, event.clientY);
       setTargetId(isLearningMode ? prefecture.id : undefined);
       setHintedId(undefined);
+      setDropPreviewId(undefined);
 
       if (regionId) {
         viewport.fitToRegion(regionId, REGION_FOCUS_PADDING);
@@ -286,6 +390,9 @@ export function PrefecturePuzzleMode({
   return (
     <main className="puzzle-screen">
       <HeaderBar onHome={onHome}>
+        <button type="button" className="ghost-button compact" onClick={() => updateSound(!soundOn)}>
+          音 {soundOn ? "ON" : "OFF"}
+        </button>
         <button type="button" className="ghost-button compact" onClick={handleRetry}>
           リセット
         </button>
@@ -298,6 +405,9 @@ export function PrefecturePuzzleMode({
         <TimeAttackPanel elapsedSeconds={timer.elapsedSeconds} bestTime={bestTime} />
         <ProgressPanel placedCount={puzzle.placedCount} totalCount={puzzle.totalCount} mistakes={puzzle.mistakes} />
         <p className="status-message" aria-live="polite">
+          <span className="mascot" aria-hidden="true">
+            {recentPlacedId ? "😄" : isLearningMode ? "🧭" : "🚀"}
+          </span>
           {getModeText(playMode, regionId)} / {puzzle.feedback}
         </p>
       </section>
@@ -310,6 +420,8 @@ export function PrefecturePuzzleMode({
           scopeIds={scopeIds}
           targetId={isLearningMode ? targetId : undefined}
           hintedId={isLearningMode ? hintedId : undefined}
+          dropPreviewId={dropPreviewId}
+          recentPlacedId={recentPlacedId}
         />
         <MiniMap viewBox={viewport.viewBox} scopeIds={scopeIds} />
         <ZoomControls
@@ -327,6 +439,18 @@ export function PrefecturePuzzleMode({
           targetName={activePrefecture?.name ?? remainingPrefectures[0]?.name}
           onHint={handleHint}
         />
+        {celebration ? (
+          <div
+            key={celebration.id}
+            className="sparkle-burst"
+            style={{ left: celebration.x, top: celebration.y, "--sparkle-color": celebration.color } as CSSProperties}
+            aria-hidden="true"
+          >
+            {Array.from({ length: 8 }, (_, index) => (
+              <span key={index} />
+            ))}
+          </div>
+        ) : null}
         {phase === "countdown" ? (
           <div className="countdown" aria-live="assertive">
             <span>{countdown > 0 ? countdown : "スタート！"}</span>
@@ -340,6 +464,7 @@ export function PrefecturePuzzleMode({
             key={prefecture.id}
             prefecture={prefecture}
             disabled={phase !== "playing"}
+            isWobbling={missWobbleId === prefecture.id}
             onPointerDown={handlePiecePointerDown}
           />
         ))}

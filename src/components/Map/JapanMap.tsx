@@ -11,9 +11,20 @@ type JapanMapProps = {
   scopeIds: Set<string>;
   targetId?: string;
   hintedId?: string;
+  dropPreviewId?: string;
+  recentPlacedId?: string;
 };
 
-export function JapanMap({ svgRef, viewBox, placedIds, scopeIds, targetId, hintedId }: JapanMapProps) {
+export function JapanMap({
+  svgRef,
+  viewBox,
+  placedIds,
+  scopeIds,
+  targetId,
+  hintedId,
+  dropPreviewId,
+  recentPlacedId
+}: JapanMapProps) {
   return (
     <svg
       ref={svgRef}
@@ -42,6 +53,8 @@ export function JapanMap({ svgRef, viewBox, placedIds, scopeIds, targetId, hinte
             isInScope={scopeIds.has(prefecture.id)}
             isTarget={targetId === prefecture.id}
             isHinted={hintedId === prefecture.id}
+            isDropPreview={dropPreviewId === prefecture.id}
+            isRecent={recentPlacedId === prefecture.id}
           />
         ))}
       </g>
