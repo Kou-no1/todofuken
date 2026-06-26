@@ -24,8 +24,7 @@ export function DragLayer({ activeDrag, prefecture }: DragLayerProps) {
     <div
       className={`drag-layer ${metrics.isTouchDrag ? "is-touch-drag" : "is-fine-drag"}`}
       style={{
-        transform: `translate(${layerCenter.x}px, ${layerCenter.y}px)`,
-        "--drag-scale": metrics.scale,
+        transform: `translate(${layerCenter.x}px, ${layerCenter.y}px) translate(-50%, -50%) scale(${metrics.scale})`,
         "--region-main": color.main,
         "--region-soft": color.soft,
         "--region-ink": color.ink
