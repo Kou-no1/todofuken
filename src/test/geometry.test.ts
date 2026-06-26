@@ -4,9 +4,10 @@ import { containsPoint } from "../utils/geometry";
 import { fitToOkinawaMainIsland, fitToRegion } from "../utils/mapViewport";
 import {
   getMainlandCandidatePoints,
+  HORIZONTAL_SNAP_SAMPLE_PX,
   getPrefectureHitCandidatePoints,
-  SHAPE_HIT_MARGIN_PX,
-  SOUTH_SNAP_OFFSET_PX
+  VERTICAL_SNAP_SAMPLE_PX,
+  VERTICAL_SNAP_STEP_PX
 } from "../utils/shapeHitTest";
 
 describe("drop geometry", () => {
@@ -25,9 +26,10 @@ describe("drop geometry", () => {
     }
   });
 
-  it("uses a small pixel margin around shape hit points", () => {
-    expect(SHAPE_HIT_MARGIN_PX).toBe(18);
-    expect(SOUTH_SNAP_OFFSET_PX).toBe(24);
+  it("uses a compact vertical sampling band for shape hit points", () => {
+    expect(VERTICAL_SNAP_SAMPLE_PX).toBe(12);
+    expect(VERTICAL_SNAP_STEP_PX).toBe(6);
+    expect(HORIZONTAL_SNAP_SAMPLE_PX).toBe(4);
   });
 
   it("prioritizes mainland anchors for small and island-heavy prefectures", () => {

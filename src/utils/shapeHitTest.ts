@@ -1,12 +1,13 @@
 import type { Point, Prefecture } from "../types/puzzle";
 import { getDragGhostClientPointForMapPoint, type DragPointInput } from "./dragGhost";
 
-export const SHAPE_HIT_MARGIN_PX = 18;
-export const SOUTH_SNAP_OFFSET_PX = 24;
+export const VERTICAL_SNAP_SAMPLE_PX = 12;
+export const VERTICAL_SNAP_STEP_PX = 6;
+export const HORIZONTAL_SNAP_SAMPLE_PX = 4;
 
 const GRID_RATIOS = [0.2, 0.35, 0.5, 0.65, 0.8];
 const MAINLAND_GRID_RATIOS = [0.5, 0.45, 0.55, 0.35, 0.65, 0.25, 0.75];
-const MAX_INTERNAL_ANCHORS = 14;
+const MAX_INTERNAL_ANCHORS = 1;
 
 const HIT_OFFSET_PIXELS = buildHitOffsets();
 const mainlandCandidateCache = new Map<string, Point[]>();
@@ -25,30 +26,20 @@ type PolygonInfo = {
 };
 
 function buildHitOffsets(): Point[] {
-  const scatter: Point[] = [
-    { x: 0, y: 0 },
-    { x: SHAPE_HIT_MARGIN_PX, y: 0 },
-    { x: -SHAPE_HIT_MARGIN_PX, y: 0 },
-    { x: 0, y: SHAPE_HIT_MARGIN_PX },
-    { x: 0, y: -SHAPE_HIT_MARGIN_PX },
-    { x: SHAPE_HIT_MARGIN_PX * 0.7, y: SHAPE_HIT_MARGIN_PX * 0.7 },
-    { x: -SHAPE_HIT_MARGIN_PX * 0.7, y: SHAPE_HIT_MARGIN_PX * 0.7 },
-    { x: SHAPE_HIT_MARGIN_PX * 0.7, y: -SHAPE_HIT_MARGIN_PX * 0.7 },
-    { x: -SHAPE_HIT_MARGIN_PX * 0.7, y: -SHAPE_HIT_MARGIN_PX * 0.7 }
+  const verticalOffsets = [
+    -VERTICAL_SNAP_SAMPLE_PX,
+    -VERTICAL_SNAP_STEP_PX,
+    0,
+    VERTICAL_SNAP_STEP_PX,
+    VERTICAL_SNAP_SAMPLE_PX
   ];
-  const biases = [
-    { x: 0, y: 0 },
-    { x: 0, y: -SOUTH_SNAP_OFFSET_PX }
-  ];
+  const offsets = verticalOffsets.map((y) => ({ x: 0, y }));
 
-  return uniquePoints(
-    biases.flatMap((bias) =>
-      scatter.map((offset) => ({
-        x: bias.x + offset.x,
-        y: bias.y + offset.y
-      }))
-    )
-  );
+  for (const y of [-VERTICAL_SNAP_STEP_PX, 0, VERTICAL_SNAP_STEP_PX]) {
+    offsets.push({ x: HORIZONTAL_SNAP_SAMPLE_PX, y }, { x: -HORIZONTAL_SNAP_SAMPLE_PX, y });
+  }
+
+  return uniquePoints(offsets);
 }
 
 function getPrefecturePath(prefectureId: string): SVGPathElement | null {
