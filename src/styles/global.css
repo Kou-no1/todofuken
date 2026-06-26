@@ -500,6 +500,37 @@ button:focus-visible {
   overflow: hidden;
 }
 
+.puzzle-play-status {
+  grid-template-columns: minmax(104px, auto) auto auto minmax(0, 1fr);
+}
+
+.drag-status-slot {
+  min-width: clamp(104px, 15vw, 158px);
+  min-height: 42px;
+  display: inline-grid;
+  place-items: center;
+  padding: 6px 12px;
+  border: 2px dashed #ffe08a;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: inset 0 -3px 0 rgba(255, 255, 255, 0.5);
+}
+
+.drag-status-slot.is-active {
+  border-style: solid;
+  border-color: var(--region-main);
+  background: color-mix(in srgb, var(--region-soft) 86%, white);
+  color: var(--region-ink);
+  box-shadow: 0 4px 0 rgba(124, 72, 20, 0.08), inset 0 -4px 0 rgba(255, 255, 255, 0.55);
+}
+
 .stat-row {
   display: inline-flex;
   align-items: center;
@@ -585,31 +616,6 @@ button:focus-visible {
 
 .map-sea {
   fill: var(--sky);
-}
-
-.drag-name-badge {
-  position: absolute;
-  z-index: 35;
-  top: clamp(10px, 2.4vh, 22px);
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: min(82vw, 430px);
-  padding: 9px 18px 11px;
-  border: 3px solid var(--region-main);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--region-soft) 84%, white);
-  color: var(--region-ink);
-  box-shadow: 0 12px 28px rgba(39, 50, 74, 0.18), inset 0 -5px 0 rgba(255, 255, 255, 0.58);
-  font-size: clamp(2.1rem, 6vw, 4rem);
-  font-weight: 900;
-  line-height: 1;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  pointer-events: none;
-  will-change: transform;
-  animation: lift-piece 160ms ease-out;
 }
 
 .prefecture-shape path {
@@ -1268,6 +1274,14 @@ button:focus-visible {
     grid-template-columns: 1fr 1fr;
   }
 
+  .puzzle-play-status {
+    grid-template-columns: minmax(92px, 0.8fr) minmax(0, 1.2fr);
+  }
+
+  .puzzle-play-status .progress-panel {
+    grid-column: 1 / -1;
+  }
+
   .status-message {
     grid-column: 1 / -1;
   }
@@ -1395,6 +1409,17 @@ button:focus-visible {
     grid-template-columns: 1fr 1fr;
     gap: 5px;
     padding: 5px 8px;
+  }
+
+  .puzzle-play-status {
+    grid-template-columns: minmax(86px, 0.85fr) minmax(0, 1.15fr);
+  }
+
+  .drag-status-slot {
+    min-width: 0;
+    min-height: 34px;
+    padding: 5px 8px;
+    font-size: 0.86rem;
   }
 
   .stat-row {

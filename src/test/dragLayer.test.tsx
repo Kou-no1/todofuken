@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { prefectures } from "../data/prefectures";
 import { DragLayer } from "../components/Puzzle/DragLayer";
+import { getDragGhostLayerCenter, getDragGhostSnapClientPoint } from "../utils/dragGhost";
 
 describe("drag layer offset", () => {
   const prefecture = prefectures[0];
@@ -12,7 +13,7 @@ describe("drag layer offset", () => {
     );
 
     expect(html).toContain("is-touch-drag");
-    expect(html).toContain("clamp(72px, 200px, calc(100vw - 72px)), 124px");
+    expect(html).toMatch(/translate\(200px,\s*124px\)/);
   });
 
   it("keeps the mouse ghost centered near the cursor", () => {
@@ -21,6 +22,19 @@ describe("drag layer offset", () => {
     );
 
     expect(html).toContain("is-fine-drag");
-    expect(html).toContain("clamp(28px, 200px, calc(100vw - 28px)), 220px");
+    expect(html).toMatch(/translate\(200px,\s*220px\)/);
+  });
+
+  it("can report the visible silhouette centroid separately from the pointer", () => {
+    const kagoshima = prefectures.find((item) => item.id === "kagoshima");
+    expect(kagoshima).toBeDefined();
+
+    const input = { prefectureId: kagoshima!.id, clientX: 200, clientY: 220, pointerType: "touch" };
+    const layerCenter = getDragGhostLayerCenter(input, 390);
+    const snapPoint = getDragGhostSnapClientPoint(input, kagoshima!, 390);
+
+    expect(layerCenter.y).toBe(124);
+    expect(snapPoint.y).toBeLessThan(220);
+    expect(snapPoint.y).not.toBeCloseTo(layerCenter.y);
   });
 });

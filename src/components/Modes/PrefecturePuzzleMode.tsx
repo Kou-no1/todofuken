@@ -27,6 +27,7 @@ import { useMapViewport } from "../../hooks/useMapViewport";
 import { usePuzzleState } from "../../hooks/usePuzzleState";
 import { useTimer } from "../../hooks/useTimer";
 import type { GameMode, Prefecture, PuzzlePlayMode, PuzzleResult } from "../../types/puzzle";
+import { getDragGhostSnapClientPoint } from "../../utils/dragGhost";
 import { isDropCorrect, pointFromClientPosition } from "../../utils/geometry";
 import { shuffle } from "../../utils/shuffle";
 
@@ -229,9 +230,13 @@ export function PrefecturePuzzleMode({
         return;
       }
 
+      const snapClientPoint = getDragGhostSnapClientPoint({ ...active, clientX, clientY }, target);
       const isInsideMap =
-        clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
-      const dropPoint = pointFromClientPosition(clientX, clientY, rect, viewport.viewBox);
+        snapClientPoint.x >= rect.left &&
+        snapClientPoint.x <= rect.right &&
+        snapClientPoint.y >= rect.top &&
+        snapClientPoint.y <= rect.bottom;
+      const dropPoint = pointFromClientPosition(snapClientPoint.x, snapClientPoint.y, rect, viewport.viewBox);
       setDropPreviewId(isInsideMap && isDropCorrect(target, dropPoint) ? target.id : undefined);
     },
     [drag.activeDrag, isLearningMode, phase, viewport.viewBox]
@@ -250,15 +255,16 @@ export function PrefecturePuzzleMode({
       }
 
       const rect = svgRef.current?.getBoundingClientRect();
+      const snapClientPoint = getDragGhostSnapClientPoint({ ...active, clientX, clientY }, target);
       const isInsideMap =
         Boolean(rect) &&
-        clientX >= rect!.left &&
-        clientX <= rect!.right &&
-        clientY >= rect!.top &&
-        clientY <= rect!.bottom;
+        snapClientPoint.x >= rect!.left &&
+        snapClientPoint.x <= rect!.right &&
+        snapClientPoint.y >= rect!.top &&
+        snapClientPoint.y <= rect!.bottom;
 
-      // 判定はDragLayerの見た目のオフセットではなく、離したポインタ位置だけを使う。
-      const dropPoint = rect ? pointFromClientPosition(clientX, clientY, rect, viewport.viewBox) : null;
+      // 判定は指/カーソル位置ではなく、画面に見えているシルエットの重心を使う。
+      const dropPoint = rect ? pointFromClientPosition(snapClientPoint.x, snapClientPoint.y, rect, viewport.viewBox) : null;
       const isCorrect = Boolean(isInsideMap && dropPoint && isDropCorrect(target, dropPoint));
 
       if (isCorrect) {
@@ -267,8 +273,8 @@ export function PrefecturePuzzleMode({
         setRecentPlacedId(target.id);
         setCelebration({
           id: Date.now(),
-          x: clientX,
-          y: clientY,
+          x: snapClientPoint.x,
+          y: snapClientPoint.y,
           color: getRegionColor(target.regionId).sparkle
         });
         window.setTimeout(() => setCelebration(null), 720);
@@ -402,7 +408,22 @@ export function PrefecturePuzzleMode({
         </button>
       </HeaderBar>
 
-      <section className="play-status" aria-label="プレイのようす">
+      <section className="play-status puzzle-play-status" aria-label="プレイのようす">
+        <div
+          className={`drag-status-slot ${activePrefecture ? "is-active" : ""}`}
+          style={
+            activePrefecture
+              ? ({
+                  "--region-main": getRegionColor(activePrefecture.regionId).main,
+                  "--region-soft": getRegionColor(activePrefecture.regionId).soft,
+                  "--region-ink": getRegionColor(activePrefecture.regionId).ink
+                } as CSSProperties)
+              : undefined
+          }
+          aria-label={activePrefecture ? `持っている県 ${activePrefecture.name}` : undefined}
+        >
+          {activePrefecture?.name ?? " "}
+        </div>
         <TimeAttackPanel elapsedSeconds={timer.elapsedSeconds} bestTime={bestTime} />
         <ProgressPanel placedCount={puzzle.placedCount} totalCount={puzzle.totalCount} mistakes={puzzle.mistakes} />
         <p className="status-message" aria-live="polite">
@@ -424,21 +445,6 @@ export function PrefecturePuzzleMode({
           dropPreviewId={dropPreviewId}
           recentPlacedId={recentPlacedId}
         />
-        {activePrefecture ? (
-          <div
-            className="drag-name-badge"
-            style={
-              {
-                "--region-main": getRegionColor(activePrefecture.regionId).main,
-                "--region-soft": getRegionColor(activePrefecture.regionId).soft,
-                "--region-ink": getRegionColor(activePrefecture.regionId).ink
-              } as CSSProperties
-            }
-            aria-live="polite"
-          >
-            {activePrefecture.name}
-          </div>
-        ) : null}
         <MiniMap viewBox={viewport.viewBox} scopeIds={scopeIds} />
         <ZoomControls
           fitLabel={regionId ? "この地方を見る" : "全国を見る"}
