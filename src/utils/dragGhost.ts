@@ -1,6 +1,6 @@
 import type { Point, Prefecture, ViewBox } from "../types/puzzle";
 
-const TOUCH_DRAG_GHOST_OFFSET_Y = 56;
+const TOUCH_DRAG_GHOST_OFFSET_Y = 75;
 const FINE_DRAG_GHOST_OFFSET_Y = 0;
 const TOUCH_DRAG_GHOST_MIN_Y = 44;
 const FINE_DRAG_GHOST_MIN_Y = 36;
@@ -10,7 +10,7 @@ const DRAG_LAYER_WIDTH = 144;
 const DRAG_LAYER_HEIGHT = 120;
 const DRAG_SHAPE_PADDING = 18;
 
-type DragPointInput = {
+export type DragPointInput = {
   clientX: number;
   clientY: number;
   pointerType: string;
@@ -49,6 +49,14 @@ export function getDragGhostSnapClientPoint(
   input: DragPointInput,
   prefecture: Prefecture
 ): Point {
+  return getDragGhostClientPointForMapPoint(input, prefecture, prefecture.centroid);
+}
+
+export function getDragGhostClientPointForMapPoint(
+  input: DragPointInput,
+  prefecture: Prefecture,
+  mapPoint: Point
+): Point {
   const layerCenter = getDragGhostLayerCenter(input);
   const metrics = getDragGhostMetrics(input.pointerType);
   const viewBox = getDragLayerViewBox(prefecture);
@@ -57,13 +65,13 @@ export function getDragGhostSnapClientPoint(
   const renderedHeight = viewBox.height * svgScale;
   const insetX = (DRAG_LAYER_WIDTH - renderedWidth) / 2;
   const insetY = (DRAG_LAYER_HEIGHT - renderedHeight) / 2;
-  const centroidInLayer = {
-    x: insetX + (prefecture.centroid.x - viewBox.x) * svgScale,
-    y: insetY + (prefecture.centroid.y - viewBox.y) * svgScale
+  const mapPointInLayer = {
+    x: insetX + (mapPoint.x - viewBox.x) * svgScale,
+    y: insetY + (mapPoint.y - viewBox.y) * svgScale
   };
 
   return {
-    x: layerCenter.x + (centroidInLayer.x - DRAG_LAYER_WIDTH / 2) * metrics.scale,
-    y: layerCenter.y + (centroidInLayer.y - DRAG_LAYER_HEIGHT / 2) * metrics.scale
+    x: layerCenter.x + (mapPointInLayer.x - DRAG_LAYER_WIDTH / 2) * metrics.scale,
+    y: layerCenter.y + (mapPointInLayer.y - DRAG_LAYER_HEIGHT / 2) * metrics.scale
   };
 }

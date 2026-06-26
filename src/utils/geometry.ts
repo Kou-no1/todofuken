@@ -31,47 +31,8 @@ export function bboxToViewBox(box: BBox): ViewBox {
   };
 }
 
-export function distance(a: Point, b: Point): number {
-  return Math.hypot(a.x - b.x, a.y - b.y);
-}
-
 export function containsPoint(box: BBox, point: Point): boolean {
   return point.x >= box.x && point.x <= box.x + box.width && point.y >= box.y && point.y <= box.y + box.height;
-}
-
-export function isPointNearBBox(box: BBox, point: Point, padding: number): boolean {
-  return containsPoint(padBBox(box, padding), point);
-}
-
-export function getDropTolerance(target: { bbox: BBox }): number {
-  const shortSide = Math.min(target.bbox.width, target.bbox.height);
-  return Math.max(22, Math.min(32, shortSide * 0.72));
-}
-
-export function pointFromClientPosition(
-  clientX: number,
-  clientY: number,
-  rect: DOMRect,
-  viewBox: ViewBox
-): Point {
-  const scale = Math.min(rect.width / viewBox.width, rect.height / viewBox.height);
-  const renderedWidth = viewBox.width * scale;
-  const renderedHeight = viewBox.height * scale;
-  const insetX = (rect.width - renderedWidth) / 2;
-  const insetY = (rect.height - renderedHeight) / 2;
-
-  return {
-    x: viewBox.x + (clientX - rect.left - insetX) / scale,
-    y: viewBox.y + (clientY - rect.top - insetY) / scale
-  };
-}
-
-export function isDropCorrect(
-  target: { bbox: BBox; centroid: Point },
-  point: Point,
-  tolerance = getDropTolerance(target)
-): boolean {
-  return distance(point, target.centroid) <= tolerance;
 }
 
 export function viewBoxToString(viewBox: ViewBox): string {

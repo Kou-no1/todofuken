@@ -61,7 +61,7 @@ export function PrefectureShape({
         } as CSSProperties
       }
     >
-      <path d={prefecture.path} />
+      <path d={prefecture.path} data-prefecture-id={prefecture.id} />
       {showLabel ? (
         <g className="prefecture-label" aria-hidden="true">
           <rect

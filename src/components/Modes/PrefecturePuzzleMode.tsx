@@ -27,8 +27,7 @@ import { useMapViewport } from "../../hooks/useMapViewport";
 import { usePuzzleState } from "../../hooks/usePuzzleState";
 import { useTimer } from "../../hooks/useTimer";
 import type { GameMode, Prefecture, PuzzlePlayMode, PuzzleResult } from "../../types/puzzle";
-import { getDragGhostSnapClientPoint } from "../../utils/dragGhost";
-import { isDropCorrect, pointFromClientPosition } from "../../utils/geometry";
+import { hitTestPrefectureShape } from "../../utils/shapeHitTest";
 import { shuffle } from "../../utils/shuffle";
 
 type PrefecturePuzzleModeProps = {
@@ -223,23 +222,16 @@ export function PrefecturePuzzleMode({
     (clientX: number, clientY: number) => {
       const active = drag.activeDrag;
       const target = active ? prefectureById.get(active.prefectureId) : undefined;
-      const rect = svgRef.current?.getBoundingClientRect();
 
-      if (!isLearningMode || !active || !target || !rect || phase !== "playing") {
+      if (!isLearningMode || !active || !target || phase !== "playing") {
         setDropPreviewId(undefined);
         return;
       }
 
-      const snapClientPoint = getDragGhostSnapClientPoint({ ...active, clientX, clientY }, target);
-      const isInsideMap =
-        snapClientPoint.x >= rect.left &&
-        snapClientPoint.x <= rect.right &&
-        snapClientPoint.y >= rect.top &&
-        snapClientPoint.y <= rect.bottom;
-      const dropPoint = pointFromClientPosition(snapClientPoint.x, snapClientPoint.y, rect, viewport.viewBox);
-      setDropPreviewId(isInsideMap && isDropCorrect(target, dropPoint) ? target.id : undefined);
+      const shapeHit = hitTestPrefectureShape({ ...active, clientX, clientY }, target);
+      setDropPreviewId(shapeHit.isHit ? target.id : undefined);
     },
-    [drag.activeDrag, isLearningMode, phase, viewport.viewBox]
+    [drag.activeDrag, isLearningMode, phase]
   );
 
   const finishDrop = useCallback(
@@ -254,27 +246,16 @@ export function PrefecturePuzzleMode({
         return;
       }
 
-      const rect = svgRef.current?.getBoundingClientRect();
-      const snapClientPoint = getDragGhostSnapClientPoint({ ...active, clientX, clientY }, target);
-      const isInsideMap =
-        Boolean(rect) &&
-        snapClientPoint.x >= rect!.left &&
-        snapClientPoint.x <= rect!.right &&
-        snapClientPoint.y >= rect!.top &&
-        snapClientPoint.y <= rect!.bottom;
+      const shapeHit = hitTestPrefectureShape({ ...active, clientX, clientY }, target);
 
-      // 判定は指/カーソル位置ではなく、画面に見えているシルエットの重心を使う。
-      const dropPoint = rect ? pointFromClientPosition(snapClientPoint.x, snapClientPoint.y, rect, viewport.viewBox) : null;
-      const isCorrect = Boolean(isInsideMap && dropPoint && isDropCorrect(target, dropPoint));
-
-      if (isCorrect) {
+      if (shapeHit.isHit) {
         puzzle.placeCorrect(target.id, target.name);
         setHintedId(undefined);
         setRecentPlacedId(target.id);
         setCelebration({
           id: Date.now(),
-          x: snapClientPoint.x,
-          y: snapClientPoint.y,
+          x: shapeHit.clientPoint.x,
+          y: shapeHit.clientPoint.y,
           color: getRegionColor(target.regionId).sparkle
         });
         window.setTimeout(() => setCelebration(null), 720);
@@ -292,7 +273,7 @@ export function PrefecturePuzzleMode({
         playTone("wrong", soundOn);
       }
     },
-    [completePuzzle, drag, isLearningMode, phase, puzzle, scopeIdList.length, soundOn, viewport.viewBox]
+    [completePuzzle, drag, isLearningMode, phase, puzzle, scopeIdList.length, soundOn]
   );
 
   useEffect(() => {

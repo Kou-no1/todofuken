@@ -1,72 +1,25 @@
 import { describe, expect, it } from "vitest";
 import { prefectureById } from "../data/prefectures";
-import { containsPoint, getDropTolerance, isDropCorrect, pointFromClientPosition } from "../utils/geometry";
+import { containsPoint } from "../utils/geometry";
 import { fitToRegion } from "../utils/mapViewport";
+import { getPrefectureHitCandidatePoints, SHAPE_HIT_MARGIN_PX } from "../utils/shapeHitTest";
 
 describe("drop geometry", () => {
-  it("uses a size-aware centroid snap tolerance", () => {
-    expect(getDropTolerance({ bbox: { x: 0, y: 0, width: 36, height: 22 } })).toBe(22);
-    expect(getDropTolerance({ bbox: { x: 0, y: 0, width: 51.2, height: 39.3 } })).toBeCloseTo(28.296);
-    expect(getDropTolerance({ bbox: { x: 0, y: 0, width: 60, height: 48 } })).toBe(32);
-  });
+  it("builds multiple shape hit anchors for island-heavy prefectures", () => {
+    const targetIds = ["tokyo", "nagasaki", "kagoshima", "okinawa"];
 
-  it("accepts a nearby silhouette centroid without making the target unlimited", () => {
-    const smallTarget = {
-      bbox: { x: 0, y: 0, width: 26, height: 22 },
-      centroid: { x: 13, y: 11 }
-    };
+    for (const id of targetIds) {
+      const prefecture = prefectureById.get(id);
+      expect(prefecture).toBeDefined();
 
-    expect(isDropCorrect(smallTarget, { x: 13, y: 11 })).toBe(true);
-    expect(isDropCorrect(smallTarget, { x: -8.9, y: 11 })).toBe(true);
-    expect(isDropCorrect(smallTarget, { x: -9.1, y: 11 })).toBe(false);
-  });
-
-  it("lets Yamagata, Oita, and Fukushima snap at their centers without accepting neighbor centers", () => {
-    const cases = [
-      { id: "yamagata", neighbors: ["akita", "miyagi", "fukushima", "niigata"] },
-      { id: "oita", neighbors: ["fukuoka", "kumamoto", "miyazaki"] },
-      { id: "fukushima", neighbors: ["miyagi", "yamagata", "niigata", "tochigi", "ibaraki"] }
-    ];
-
-    for (const item of cases) {
-      const target = prefectureById.get(item.id);
-      expect(target).toBeDefined();
-      expect(isDropCorrect(target!, target!.centroid)).toBe(true);
-      expect(
-        isDropCorrect(target!, {
-          x: target!.bbox.x + target!.bbox.width / 2,
-          y: target!.bbox.y + target!.bbox.height / 2
-        })
-      ).toBe(true);
-
-      for (const neighborId of item.neighbors) {
-        const neighbor = prefectureById.get(neighborId);
-        expect(neighbor).toBeDefined();
-        expect(isDropCorrect(target!, neighbor!.centroid)).toBe(false);
-      }
+      const candidates = getPrefectureHitCandidatePoints(prefecture!);
+      expect(candidates.length).toBeGreaterThan(10);
+      expect(candidates).toContainEqual(prefecture!.centroid);
     }
   });
 
-  it("maps client coordinates through the rendered SVG viewBox, including meet letterboxing", () => {
-    const rect = {
-      left: 0,
-      top: 148.6666717529297,
-      width: 1024,
-      height: 495.3333435058594
-    } as DOMRect;
-    const viewBox = { x: 134.1, y: 415.3, width: 353.2, height: 518.5 };
-    const target = { x: 329.8, y: 556.9 };
-    const scale = Math.min(rect.width / viewBox.width, rect.height / viewBox.height);
-    const renderedWidth = viewBox.width * scale;
-    const renderedHeight = viewBox.height * scale;
-    const screenPoint = {
-      x: rect.left + (rect.width - renderedWidth) / 2 + (target.x - viewBox.x) * scale,
-      y: rect.top + (rect.height - renderedHeight) / 2 + (target.y - viewBox.y) * scale
-    };
-
-    const mappedPoint = pointFromClientPosition(screenPoint.x, screenPoint.y, rect, viewBox);
-    expect(mappedPoint.x).toBeCloseTo(target.x);
-    expect(mappedPoint.y).toBeCloseTo(target.y);
+  it("uses a small pixel margin around shape hit points", () => {
+    expect(SHAPE_HIT_MARGIN_PX).toBe(10);
   });
 });
 
