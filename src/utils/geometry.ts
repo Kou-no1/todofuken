@@ -43,6 +43,20 @@ export function isPointNearBBox(box: BBox, point: Point, padding: number): boole
   return containsPoint(padBBox(box, padding), point);
 }
 
+export function getDropTolerance(target: { bbox: BBox }): number {
+  const shortSide = Math.min(target.bbox.width, target.bbox.height);
+
+  if (shortSide < 24) {
+    return 38;
+  }
+
+  if (shortSide < 34) {
+    return 34;
+  }
+
+  return 28;
+}
+
 export function pointFromClientPosition(
   clientX: number,
   clientY: number,
@@ -61,7 +75,7 @@ export function pointFromClientPosition(
 export function isDropCorrect(
   target: { bbox: BBox; centroid: Point },
   point: Point,
-  tolerance = 28
+  tolerance = getDropTolerance(target)
 ): boolean {
   const radius = Math.max(target.bbox.width, target.bbox.height) * 0.62 + tolerance;
   return isPointNearBBox(target.bbox, point, tolerance) || distance(point, target.centroid) <= radius;

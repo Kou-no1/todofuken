@@ -257,6 +257,7 @@ export function PrefecturePuzzleMode({
         clientY >= rect!.top &&
         clientY <= rect!.bottom;
 
+      // 判定はDragLayerの見た目のオフセットではなく、離したポインタ位置だけを使う。
       const dropPoint = rect ? pointFromClientPosition(clientX, clientY, rect, viewport.viewBox) : null;
       const isCorrect = Boolean(isInsideMap && dropPoint && isDropCorrect(target, dropPoint));
 
@@ -328,7 +329,7 @@ export function PrefecturePuzzleMode({
         // Pointer capture is a convenience only; window-level listeners still handle the drag.
       }
 
-      drag.startDrag(prefecture.id, event.clientX, event.clientY);
+      drag.startDrag(prefecture.id, event.clientX, event.clientY, event.pointerType || "mouse");
       setTargetId(isLearningMode ? prefecture.id : undefined);
       setHintedId(undefined);
       setDropPreviewId(undefined);

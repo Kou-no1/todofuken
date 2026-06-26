@@ -851,7 +851,7 @@ button:focus-visible {
   pointer-events: none;
   z-index: 40;
   translate: -50% -50%;
-  scale: 1.18;
+  scale: var(--drag-scale, 1.18);
   filter: drop-shadow(0 18px 24px rgba(39, 50, 74, 0.26)) drop-shadow(0 4px 8px rgba(39, 50, 74, 0.18));
   will-change: transform, scale, filter;
   animation: lift-piece 180ms ease-out;

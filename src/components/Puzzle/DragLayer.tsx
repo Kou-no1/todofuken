@@ -4,9 +4,12 @@ import type { ActiveDrag } from "../../hooks/useDragAndDrop";
 import type { Prefecture } from "../../types/puzzle";
 import { viewBoxToString } from "../../utils/geometry";
 
-const DRAG_GHOST_OFFSET_Y = 96;
-const DRAG_GHOST_EDGE_PADDING = 72;
-const DRAG_GHOST_MIN_Y = 84;
+const TOUCH_DRAG_GHOST_OFFSET_Y = 96;
+const FINE_DRAG_GHOST_OFFSET_Y = 0;
+const TOUCH_DRAG_GHOST_EDGE_PADDING = 72;
+const FINE_DRAG_GHOST_EDGE_PADDING = 28;
+const TOUCH_DRAG_GHOST_MIN_Y = 84;
+const FINE_DRAG_GHOST_MIN_Y = 36;
 
 type DragLayerProps = {
   activeDrag: ActiveDrag | null;
@@ -19,7 +22,11 @@ export function DragLayer({ activeDrag, prefecture }: DragLayerProps) {
   }
 
   const color = getRegionColor(prefecture.regionId);
-  const ghostY = Math.max(DRAG_GHOST_MIN_Y, activeDrag.clientY - DRAG_GHOST_OFFSET_Y);
+  const isTouchDrag = activeDrag.pointerType === "touch";
+  const offsetY = isTouchDrag ? TOUCH_DRAG_GHOST_OFFSET_Y : FINE_DRAG_GHOST_OFFSET_Y;
+  const edgePadding = isTouchDrag ? TOUCH_DRAG_GHOST_EDGE_PADDING : FINE_DRAG_GHOST_EDGE_PADDING;
+  const minY = isTouchDrag ? TOUCH_DRAG_GHOST_MIN_Y : FINE_DRAG_GHOST_MIN_Y;
+  const ghostY = Math.max(minY, activeDrag.clientY - offsetY);
   const viewBox = {
     x: prefecture.bbox.x - 18,
     y: prefecture.bbox.y - 18,
@@ -29,9 +36,10 @@ export function DragLayer({ activeDrag, prefecture }: DragLayerProps) {
 
   return (
     <div
-      className="drag-layer"
+      className={`drag-layer ${isTouchDrag ? "is-touch-drag" : "is-fine-drag"}`}
       style={{
-        transform: `translate(clamp(${DRAG_GHOST_EDGE_PADDING}px, ${activeDrag.clientX}px, calc(100vw - ${DRAG_GHOST_EDGE_PADDING}px)), ${ghostY}px)`,
+        transform: `translate(clamp(${edgePadding}px, ${activeDrag.clientX}px, calc(100vw - ${edgePadding}px)), ${ghostY}px)`,
+        "--drag-scale": isTouchDrag ? 1.18 : 1.08,
         "--region-main": color.main,
         "--region-soft": color.soft,
         "--region-ink": color.ink
