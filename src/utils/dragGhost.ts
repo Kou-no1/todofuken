@@ -1,6 +1,6 @@
 import type { Point, Prefecture, ViewBox } from "../types/puzzle";
 
-const TOUCH_DRAG_GHOST_OFFSET_Y = 75;
+const TOUCH_DRAG_GHOST_OFFSET_Y = 100;
 const FINE_DRAG_GHOST_OFFSET_Y = 0;
 const TOUCH_DRAG_GHOST_MIN_Y = 44;
 const FINE_DRAG_GHOST_MIN_Y = 36;

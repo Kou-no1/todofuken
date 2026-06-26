@@ -26,7 +26,8 @@ import { useDragAndDrop } from "../../hooks/useDragAndDrop";
 import { useMapViewport } from "../../hooks/useMapViewport";
 import { usePuzzleState } from "../../hooks/usePuzzleState";
 import { useTimer } from "../../hooks/useTimer";
-import type { GameMode, Prefecture, PuzzlePlayMode, PuzzleResult } from "../../types/puzzle";
+import type { GameMode, Prefecture, PuzzlePlayMode, PuzzleResult, ViewBox } from "../../types/puzzle";
+import { fitToOkinawaMainIsland } from "../../utils/mapViewport";
 import { hitTestPrefectureShape } from "../../utils/shapeHitTest";
 import { shuffle } from "../../utils/shuffle";
 
@@ -143,6 +144,7 @@ export function PrefecturePuzzleMode({
   const [celebration, setCelebration] = useState<Celebration | null>(null);
   const [soundOn, setSoundOn] = useState(getStoredSoundSetting);
   const [result, setResult] = useState<PuzzleResult | null>(null);
+  const okinawaRestoreViewBoxRef = useRef<ViewBox | null>(null);
 
   const timer = useTimer();
   const { bestTime, recordResult } = useBestTime(mode, regionId);
@@ -161,6 +163,7 @@ export function PrefecturePuzzleMode({
     setRecentPlacedId(undefined);
     setMissWobbleId(undefined);
     setCelebration(null);
+    okinawaRestoreViewBoxRef.current = null;
     setPieceOrder(shuffle(scopeIdList));
     setPhase("countdown");
     setCountdown(3);
@@ -218,6 +221,16 @@ export function PrefecturePuzzleMode({
     [mode, recordResult, regionId, timer]
   );
 
+  const restoreOkinawaViewport = useCallback(() => {
+    const restoreViewBox = okinawaRestoreViewBoxRef.current;
+    if (!restoreViewBox) {
+      return;
+    }
+
+    okinawaRestoreViewBoxRef.current = null;
+    viewport.animateToViewBox(restoreViewBox, 260);
+  }, [viewport]);
+
   const updateDropPreview = useCallback(
     (clientX: number, clientY: number) => {
       const active = drag.activeDrag;
@@ -247,6 +260,7 @@ export function PrefecturePuzzleMode({
       }
 
       const shapeHit = hitTestPrefectureShape({ ...active, clientX, clientY }, target);
+      restoreOkinawaViewport();
 
       if (shapeHit.isHit) {
         puzzle.placeCorrect(target.id, target.name);
@@ -273,7 +287,7 @@ export function PrefecturePuzzleMode({
         playTone("wrong", soundOn);
       }
     },
-    [completePuzzle, drag, isLearningMode, phase, puzzle, scopeIdList.length, soundOn]
+    [completePuzzle, drag, isLearningMode, phase, puzzle, restoreOkinawaViewport, scopeIdList.length, soundOn]
   );
 
   useEffect(() => {
@@ -321,7 +335,10 @@ export function PrefecturePuzzleMode({
       setHintedId(undefined);
       setDropPreviewId(undefined);
 
-      if (regionId) {
+      if (prefecture.id === "okinawa") {
+        okinawaRestoreViewBoxRef.current = viewport.viewBox;
+        viewport.animateToViewBox(fitToOkinawaMainIsland(), 280);
+      } else if (regionId) {
         viewport.fitToRegion(regionId, REGION_FOCUS_PADDING);
       } else {
         viewport.fitToRegion(prefecture.regionId, REGION_FOCUS_PADDING);

@@ -11,6 +11,10 @@ const OKINAWA_MAIN_ISLAND_BOX = {
   width: 92,
   height: 80
 };
+const OKINAWA_DRAG_VIEWBOX = {
+  width: 152,
+  height: 132
+};
 
 export function fitToJapan(padding = 28): ViewBox {
   return bboxToViewBox(padBBox(JAPAN_BBOX, padding));
@@ -60,6 +64,22 @@ export function fitToPrefecture(prefectureId: string, padding = 80): ViewBox {
   }
 
   return bboxToViewBox(padBBox(prefecture.bbox, padding));
+}
+
+export function fitToOkinawaMainIsland(): ViewBox {
+  const okinawa = prefectureById.get("okinawa");
+  const point = okinawa?.capitalPoint ?? okinawa?.centroid;
+
+  if (!point) {
+    return fitToRegion(KYUSHU_OKINAWA_REGION_ID);
+  }
+
+  return {
+    x: point.x - OKINAWA_DRAG_VIEWBOX.width / 2,
+    y: point.y - OKINAWA_DRAG_VIEWBOX.height / 2,
+    width: OKINAWA_DRAG_VIEWBOX.width,
+    height: OKINAWA_DRAG_VIEWBOX.height
+  };
 }
 
 export function fitToPrefectureGroup(prefectureIds: string[], padding = 48): ViewBox {

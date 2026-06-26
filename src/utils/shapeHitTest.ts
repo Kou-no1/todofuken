@@ -1,27 +1,55 @@
 import type { Point, Prefecture } from "../types/puzzle";
 import { getDragGhostClientPointForMapPoint, type DragPointInput } from "./dragGhost";
 
-export const SHAPE_HIT_MARGIN_PX = 10;
-
-const HIT_OFFSET_PIXELS: Point[] = [
-  { x: 0, y: 0 },
-  { x: SHAPE_HIT_MARGIN_PX, y: 0 },
-  { x: -SHAPE_HIT_MARGIN_PX, y: 0 },
-  { x: 0, y: SHAPE_HIT_MARGIN_PX },
-  { x: 0, y: -SHAPE_HIT_MARGIN_PX },
-  { x: SHAPE_HIT_MARGIN_PX * 0.7, y: SHAPE_HIT_MARGIN_PX * 0.7 },
-  { x: -SHAPE_HIT_MARGIN_PX * 0.7, y: SHAPE_HIT_MARGIN_PX * 0.7 },
-  { x: SHAPE_HIT_MARGIN_PX * 0.7, y: -SHAPE_HIT_MARGIN_PX * 0.7 },
-  { x: -SHAPE_HIT_MARGIN_PX * 0.7, y: -SHAPE_HIT_MARGIN_PX * 0.7 }
-];
+export const SHAPE_HIT_MARGIN_PX = 18;
+export const SOUTH_SNAP_OFFSET_PX = 24;
 
 const GRID_RATIOS = [0.2, 0.35, 0.5, 0.65, 0.8];
+const MAINLAND_GRID_RATIOS = [0.5, 0.45, 0.55, 0.35, 0.65, 0.25, 0.75];
 const MAX_INTERNAL_ANCHORS = 14;
+
+const HIT_OFFSET_PIXELS = buildHitOffsets();
+const mainlandCandidateCache = new Map<string, Point[]>();
+const hitCandidateCache = new Map<string, Point[]>();
 
 type ShapeHitResult = {
   isHit: boolean;
   clientPoint: Point;
 };
+
+type PolygonInfo = {
+  area: number;
+  bbox: { x: number; y: number; width: number; height: number };
+  centroid: Point;
+  points: Point[];
+};
+
+function buildHitOffsets(): Point[] {
+  const scatter: Point[] = [
+    { x: 0, y: 0 },
+    { x: SHAPE_HIT_MARGIN_PX, y: 0 },
+    { x: -SHAPE_HIT_MARGIN_PX, y: 0 },
+    { x: 0, y: SHAPE_HIT_MARGIN_PX },
+    { x: 0, y: -SHAPE_HIT_MARGIN_PX },
+    { x: SHAPE_HIT_MARGIN_PX * 0.7, y: SHAPE_HIT_MARGIN_PX * 0.7 },
+    { x: -SHAPE_HIT_MARGIN_PX * 0.7, y: SHAPE_HIT_MARGIN_PX * 0.7 },
+    { x: SHAPE_HIT_MARGIN_PX * 0.7, y: -SHAPE_HIT_MARGIN_PX * 0.7 },
+    { x: -SHAPE_HIT_MARGIN_PX * 0.7, y: -SHAPE_HIT_MARGIN_PX * 0.7 }
+  ];
+  const biases = [
+    { x: 0, y: 0 },
+    { x: 0, y: -SOUTH_SNAP_OFFSET_PX }
+  ];
+
+  return uniquePoints(
+    biases.flatMap((bias) =>
+      scatter.map((offset) => ({
+        x: bias.x + offset.x,
+        y: bias.y + offset.y
+      }))
+    )
+  );
+}
 
 function getPrefecturePath(prefectureId: string): SVGPathElement | null {
   const paths = document.querySelectorAll<SVGPathElement>(".japan-map path[data-prefecture-id]");
@@ -43,8 +71,146 @@ function uniquePoints(points: Point[]): Point[] {
   return unique;
 }
 
-export function getPrefectureHitCandidatePoints(prefecture: Prefecture): Point[] {
+function parsePathPolygons(path: string): Point[][] {
+  const polygons: Point[][] = [];
+  let current: Point[] = [];
+  const commandPattern = /([MLZ])\s*([^MLZ]*)/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = commandPattern.exec(path)) !== null) {
+    const command = match[1];
+    const values = match[2].trim();
+
+    if (command === "M") {
+      if (current.length > 0) {
+        polygons.push(current);
+      }
+      current = [];
+    }
+
+    if (command === "M" || command === "L") {
+      const numbers = values
+        .split(/\s+/)
+        .map((value) => Number(value))
+        .filter((value) => Number.isFinite(value));
+
+      if (numbers.length >= 2) {
+        current.push({ x: numbers[0], y: numbers[1] });
+      }
+    }
+
+    if (command === "Z" && current.length > 0) {
+      polygons.push(current);
+      current = [];
+    }
+  }
+
+  if (current.length > 0) {
+    polygons.push(current);
+  }
+
+  return polygons.filter((polygon) => polygon.length >= 3);
+}
+
+function getPolygonArea(points: Point[]): number {
+  let sum = 0;
+  for (let index = 0; index < points.length; index += 1) {
+    const current = points[index];
+    const next = points[(index + 1) % points.length];
+    sum += current.x * next.y - next.x * current.y;
+  }
+  return Math.abs(sum) / 2;
+}
+
+function getPolygonBBox(points: Point[]): PolygonInfo["bbox"] {
+  const minX = Math.min(...points.map((point) => point.x));
+  const minY = Math.min(...points.map((point) => point.y));
+  const maxX = Math.max(...points.map((point) => point.x));
+  const maxY = Math.max(...points.map((point) => point.y));
+  return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+}
+
+function getPolygonCentroid(points: Point[]): Point {
+  let areaTimesTwo = 0;
+  let centroidX = 0;
+  let centroidY = 0;
+
+  for (let index = 0; index < points.length; index += 1) {
+    const current = points[index];
+    const next = points[(index + 1) % points.length];
+    const cross = current.x * next.y - next.x * current.y;
+    areaTimesTwo += cross;
+    centroidX += (current.x + next.x) * cross;
+    centroidY += (current.y + next.y) * cross;
+  }
+
+  if (Math.abs(areaTimesTwo) < 0.001) {
+    const bbox = getPolygonBBox(points);
+    return { x: bbox.x + bbox.width / 2, y: bbox.y + bbox.height / 2 };
+  }
+
+  return {
+    x: centroidX / (3 * areaTimesTwo),
+    y: centroidY / (3 * areaTimesTwo)
+  };
+}
+
+function getLargestPolygon(prefecture: Prefecture): PolygonInfo | null {
+  const polygons = parsePathPolygons(prefecture.path)
+    .map((points) => ({
+      points,
+      area: getPolygonArea(points),
+      bbox: getPolygonBBox(points),
+      centroid: getPolygonCentroid(points)
+    }))
+    .filter((polygon) => polygon.area > 0.5)
+    .sort((a, b) => b.area - a.area);
+
+  return polygons[0] ?? null;
+}
+
+export function getMainlandCandidatePoints(prefecture: Prefecture): Point[] {
+  const cached = mainlandCandidateCache.get(prefecture.id);
+  if (cached) {
+    return cached;
+  }
+
+  const polygon = getLargestPolygon(prefecture);
+
+  if (!polygon) {
+    return [];
+  }
+
   const candidates: Point[] = [
+    polygon.centroid,
+    {
+      x: polygon.bbox.x + polygon.bbox.width / 2,
+      y: polygon.bbox.y + polygon.bbox.height / 2
+    }
+  ];
+
+  for (const xRatio of MAINLAND_GRID_RATIOS) {
+    for (const yRatio of MAINLAND_GRID_RATIOS) {
+      candidates.push({
+        x: polygon.bbox.x + polygon.bbox.width * xRatio,
+        y: polygon.bbox.y + polygon.bbox.height * yRatio
+      });
+    }
+  }
+
+  const unique = uniquePoints(candidates);
+  mainlandCandidateCache.set(prefecture.id, unique);
+  return unique;
+}
+
+export function getPrefectureHitCandidatePoints(prefecture: Prefecture): Point[] {
+  const cached = hitCandidateCache.get(prefecture.id);
+  if (cached) {
+    return cached;
+  }
+
+  const candidates: Point[] = [
+    ...getMainlandCandidatePoints(prefecture),
     prefecture.capitalPoint ?? prefecture.centroid,
     prefecture.centroid,
     {
@@ -62,7 +228,9 @@ export function getPrefectureHitCandidatePoints(prefecture: Prefecture): Point[]
     }
   }
 
-  return uniquePoints(candidates);
+  const unique = uniquePoints(candidates);
+  hitCandidateCache.set(prefecture.id, unique);
+  return unique;
 }
 
 function isMapPointInPath(path: SVGPathElement, point: Point): boolean {

@@ -13,7 +13,7 @@ describe("drag layer offset", () => {
     );
 
     expect(html).toContain("is-touch-drag");
-    expect(html).toMatch(/translate\(200px,\s*145px\)/);
+    expect(html).toMatch(/translate\(200px,\s*120px\)/);
   });
 
   it("keeps the touch ghost horizontally aligned with the finger near the edge", () => {
@@ -24,7 +24,7 @@ describe("drag layer offset", () => {
     });
 
     expect(layerCenter.x).toBe(24);
-    expect(layerCenter.y).toBe(145);
+    expect(layerCenter.y).toBe(120);
   });
 
   it("keeps the mouse ghost centered near the cursor", () => {
@@ -44,7 +44,7 @@ describe("drag layer offset", () => {
     const layerCenter = getDragGhostLayerCenter(input);
     const snapPoint = getDragGhostSnapClientPoint(input, kagoshima!);
 
-    expect(layerCenter.y).toBe(145);
+    expect(layerCenter.y).toBe(120);
     expect(snapPoint.y).toBeLessThan(220);
     expect(snapPoint.y).not.toBeCloseTo(layerCenter.y);
   });
