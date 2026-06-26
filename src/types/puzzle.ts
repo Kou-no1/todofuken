@@ -23,6 +23,7 @@ export type Prefecture = {
   centroid: Point;
   capitalPoint?: Point;
   bbox: BBox;
+  dragBbox?: BBox;
 };
 
 export type Region = {

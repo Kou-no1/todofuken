@@ -300,6 +300,12 @@ export const prefectures: Prefecture[] = [
       "y": 433.6,
       "width": 40.4,
       "height": 118.2
+    },
+    "dragBbox": {
+      "x": 706.8,
+      "y": 433.6,
+      "width": 40.3,
+      "height": 16.5
     }
   },
   {
@@ -967,6 +973,12 @@ export const prefectures: Prefecture[] = [
       "y": 483.3,
       "width": 71.8,
       "height": 88.9
+    },
+    "dragBbox": {
+      "x": 314.8,
+      "y": 538.9,
+      "width": 32.9,
+      "height": 33.2
     }
   },
   {
@@ -1059,6 +1071,12 @@ export const prefectures: Prefecture[] = [
       "y": 588.7,
       "width": 96.3,
       "height": 188.7
+    },
+    "dragBbox": {
+      "x": 337.5,
+      "y": 588.7,
+      "width": 45.2,
+      "height": 49.6
     }
   },
   {
@@ -1082,6 +1100,12 @@ export const prefectures: Prefecture[] = [
       "y": 810.6,
       "width": 346.8,
       "height": 109.4
+    },
+    "dragBbox": {
+      "x": 234.2,
+      "y": 810.6,
+      "width": 28.8,
+      "height": 33.1
     }
   }
 ];

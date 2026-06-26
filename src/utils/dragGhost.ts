@@ -28,11 +28,13 @@ export function getDragGhostMetrics(pointerType: string) {
 }
 
 export function getDragLayerViewBox(prefecture: Prefecture): ViewBox {
+  const bbox = prefecture.dragBbox ?? prefecture.bbox;
+
   return {
-    x: prefecture.bbox.x - DRAG_SHAPE_PADDING,
-    y: prefecture.bbox.y - DRAG_SHAPE_PADDING,
-    width: prefecture.bbox.width + DRAG_SHAPE_PADDING * 2,
-    height: prefecture.bbox.height + DRAG_SHAPE_PADDING * 2
+    x: bbox.x - DRAG_SHAPE_PADDING,
+    y: bbox.y - DRAG_SHAPE_PADDING,
+    width: bbox.width + DRAG_SHAPE_PADDING * 2,
+    height: bbox.height + DRAG_SHAPE_PADDING * 2
   };
 }
 

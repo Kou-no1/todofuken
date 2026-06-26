@@ -12,8 +12,8 @@ const OKINAWA_MAIN_ISLAND_BOX = {
   height: 80
 };
 const OKINAWA_DRAG_VIEWBOX = {
-  width: 152,
-  height: 132
+  width: 240,
+  height: 180
 };
 
 export function fitToJapan(padding = 28): ViewBox {

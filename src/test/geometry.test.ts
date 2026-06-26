@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { prefectureById } from "../data/prefectures";
 import { containsPoint } from "../utils/geometry";
+import { getDragLayerViewBox } from "../utils/dragGhost";
 import { fitToOkinawaMainIsland, fitToRegion } from "../utils/mapViewport";
 import {
   getMainlandCandidatePoints,
@@ -50,6 +51,26 @@ describe("drop geometry", () => {
       expect(mainlandCandidates[0].y - prefecture!.bbox.y).toBeLessThanOrEqual(item.maxHeightFromTop);
     }
   });
+
+  it("uses display-specific drag bboxes for island-heavy ghost pieces", () => {
+    const expectations = [
+      { id: "tokyo", dragBbox: { x: 706.8, y: 433.6, width: 40.3, height: 16.5 } },
+      { id: "nagasaki", dragBbox: { x: 314.8, y: 538.9, width: 32.9, height: 33.2 } },
+      { id: "kagoshima", dragBbox: { x: 337.5, y: 588.7, width: 45.2, height: 49.6 } },
+      { id: "okinawa", dragBbox: { x: 234.2, y: 810.6, width: 28.8, height: 33.1 } }
+    ];
+
+    for (const item of expectations) {
+      const prefecture = prefectureById.get(item.id);
+      expect(prefecture).toBeDefined();
+      expect(prefecture!.dragBbox).toEqual(item.dragBbox);
+    }
+
+    const tokyo = prefectureById.get("tokyo");
+    expect(tokyo).toBeDefined();
+    const dragViewBox = getDragLayerViewBox(tokyo!);
+    expect(dragViewBox.height).toBeLessThan(tokyo!.bbox.height);
+  });
 });
 
 describe("region viewport", () => {
@@ -73,8 +94,8 @@ describe("region viewport", () => {
     expect(okinawa).toBeDefined();
 
     expect(containsPoint(viewBox, okinawa!.capitalPoint ?? okinawa!.centroid)).toBe(true);
-    expect(viewBox.width).toBe(152);
-    expect(viewBox.height).toBe(132);
-    expect(viewBox.x).toBeGreaterThan(150);
+    expect(viewBox.width).toBe(240);
+    expect(viewBox.height).toBe(180);
+    expect(viewBox.x).toBeGreaterThan(100);
   });
 });
