@@ -54,12 +54,15 @@ export function pointFromClientPosition(
   rect: DOMRect,
   viewBox: ViewBox
 ): Point {
-  const xRatio = (clientX - rect.left) / rect.width;
-  const yRatio = (clientY - rect.top) / rect.height;
+  const scale = Math.min(rect.width / viewBox.width, rect.height / viewBox.height);
+  const renderedWidth = viewBox.width * scale;
+  const renderedHeight = viewBox.height * scale;
+  const insetX = (rect.width - renderedWidth) / 2;
+  const insetY = (rect.height - renderedHeight) / 2;
 
   return {
-    x: viewBox.x + xRatio * viewBox.width,
-    y: viewBox.y + yRatio * viewBox.height
+    x: viewBox.x + (clientX - rect.left - insetX) / scale,
+    y: viewBox.y + (clientY - rect.top - insetY) / scale
   };
 }
 

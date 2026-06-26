@@ -1,10 +1,8 @@
 import type { Point, Prefecture, ViewBox } from "../types/puzzle";
 
-const TOUCH_DRAG_GHOST_OFFSET_Y = 96;
+const TOUCH_DRAG_GHOST_OFFSET_Y = 56;
 const FINE_DRAG_GHOST_OFFSET_Y = 0;
-const TOUCH_DRAG_GHOST_EDGE_PADDING = 72;
-const FINE_DRAG_GHOST_EDGE_PADDING = 28;
-const TOUCH_DRAG_GHOST_MIN_Y = 84;
+const TOUCH_DRAG_GHOST_MIN_Y = 44;
 const FINE_DRAG_GHOST_MIN_Y = 36;
 const TOUCH_DRAG_GHOST_SCALE = 1.18;
 const FINE_DRAG_GHOST_SCALE = 1.08;
@@ -24,7 +22,6 @@ export function getDragGhostMetrics(pointerType: string) {
   return {
     isTouchDrag,
     offsetY: isTouchDrag ? TOUCH_DRAG_GHOST_OFFSET_Y : FINE_DRAG_GHOST_OFFSET_Y,
-    edgePadding: isTouchDrag ? TOUCH_DRAG_GHOST_EDGE_PADDING : FINE_DRAG_GHOST_EDGE_PADDING,
     minY: isTouchDrag ? TOUCH_DRAG_GHOST_MIN_Y : FINE_DRAG_GHOST_MIN_Y,
     scale: isTouchDrag ? TOUCH_DRAG_GHOST_SCALE : FINE_DRAG_GHOST_SCALE
   };
@@ -39,30 +36,20 @@ export function getDragLayerViewBox(prefecture: Prefecture): ViewBox {
   };
 }
 
-function getViewportWidth() {
-  return typeof window === "undefined" ? 1024 : window.innerWidth;
-}
-
-function clampToViewport(value: number, edgePadding: number, viewportWidth: number) {
-  const max = Math.max(edgePadding, viewportWidth - edgePadding);
-  return Math.min(Math.max(value, edgePadding), max);
-}
-
-export function getDragGhostLayerCenter(input: DragPointInput, viewportWidth = getViewportWidth()): Point {
+export function getDragGhostLayerCenter(input: DragPointInput): Point {
   const metrics = getDragGhostMetrics(input.pointerType);
 
   return {
-    x: clampToViewport(input.clientX, metrics.edgePadding, viewportWidth),
+    x: input.clientX,
     y: Math.max(metrics.minY, input.clientY - metrics.offsetY)
   };
 }
 
 export function getDragGhostSnapClientPoint(
   input: DragPointInput,
-  prefecture: Prefecture,
-  viewportWidth = getViewportWidth()
+  prefecture: Prefecture
 ): Point {
-  const layerCenter = getDragGhostLayerCenter(input, viewportWidth);
+  const layerCenter = getDragGhostLayerCenter(input);
   const metrics = getDragGhostMetrics(input.pointerType);
   const viewBox = getDragLayerViewBox(prefecture);
   const svgScale = Math.min(DRAG_LAYER_WIDTH / viewBox.width, DRAG_LAYER_HEIGHT / viewBox.height);

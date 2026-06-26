@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { prefectureById } from "../data/prefectures";
-import { containsPoint, getDropTolerance, isDropCorrect } from "../utils/geometry";
+import { containsPoint, getDropTolerance, isDropCorrect, pointFromClientPosition } from "../utils/geometry";
 import { fitToRegion } from "../utils/mapViewport";
 
 describe("drop geometry", () => {
@@ -45,6 +45,28 @@ describe("drop geometry", () => {
         expect(isDropCorrect(target!, neighbor!.centroid)).toBe(false);
       }
     }
+  });
+
+  it("maps client coordinates through the rendered SVG viewBox, including meet letterboxing", () => {
+    const rect = {
+      left: 0,
+      top: 148.6666717529297,
+      width: 1024,
+      height: 495.3333435058594
+    } as DOMRect;
+    const viewBox = { x: 134.1, y: 415.3, width: 353.2, height: 518.5 };
+    const target = { x: 329.8, y: 556.9 };
+    const scale = Math.min(rect.width / viewBox.width, rect.height / viewBox.height);
+    const renderedWidth = viewBox.width * scale;
+    const renderedHeight = viewBox.height * scale;
+    const screenPoint = {
+      x: rect.left + (rect.width - renderedWidth) / 2 + (target.x - viewBox.x) * scale,
+      y: rect.top + (rect.height - renderedHeight) / 2 + (target.y - viewBox.y) * scale
+    };
+
+    const mappedPoint = pointFromClientPosition(screenPoint.x, screenPoint.y, rect, viewBox);
+    expect(mappedPoint.x).toBeCloseTo(target.x);
+    expect(mappedPoint.y).toBeCloseTo(target.y);
   });
 });
 
