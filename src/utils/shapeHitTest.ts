@@ -1,13 +1,13 @@
 import type { Point, Prefecture } from "../types/puzzle";
 import { getDragGhostClientPointForMapPoint, type DragPointInput } from "./dragGhost";
 
-export const VERTICAL_SNAP_SAMPLE_PX = 12;
-export const VERTICAL_SNAP_STEP_PX = 6;
-export const HORIZONTAL_SNAP_SAMPLE_PX = 4;
+export const VERTICAL_SNAP_SAMPLE_PX = 24;
+export const VERTICAL_SNAP_STEP_PX = 8;
+export const HORIZONTAL_SNAP_SAMPLE_PX = 8;
 
 const GRID_RATIOS = [0.2, 0.35, 0.5, 0.65, 0.8];
 const MAINLAND_GRID_RATIOS = [0.5, 0.45, 0.55, 0.35, 0.65, 0.25, 0.75];
-const MAX_INTERNAL_ANCHORS = 1;
+export const MAX_INTERNAL_ANCHORS = 4;
 
 const HIT_OFFSET_PIXELS = buildHitOffsets();
 const mainlandCandidateCache = new Map<string, Point[]>();
@@ -26,16 +26,25 @@ type PolygonInfo = {
 };
 
 function buildHitOffsets(): Point[] {
-  const verticalOffsets = [
-    -VERTICAL_SNAP_SAMPLE_PX,
+  const verticalOffsets: number[] = [];
+
+  for (
+    let y = -VERTICAL_SNAP_SAMPLE_PX;
+    y <= VERTICAL_SNAP_SAMPLE_PX;
+    y += VERTICAL_SNAP_STEP_PX
+  ) {
+    verticalOffsets.push(y);
+  }
+
+  const offsets = verticalOffsets.map((y) => ({ x: 0, y }));
+
+  for (const y of [
+    -VERTICAL_SNAP_STEP_PX * 2,
     -VERTICAL_SNAP_STEP_PX,
     0,
     VERTICAL_SNAP_STEP_PX,
-    VERTICAL_SNAP_SAMPLE_PX
-  ];
-  const offsets = verticalOffsets.map((y) => ({ x: 0, y }));
-
-  for (const y of [-VERTICAL_SNAP_STEP_PX, 0, VERTICAL_SNAP_STEP_PX]) {
+    VERTICAL_SNAP_STEP_PX * 2
+  ]) {
     offsets.push({ x: HORIZONTAL_SNAP_SAMPLE_PX, y }, { x: -HORIZONTAL_SNAP_SAMPLE_PX, y });
   }
 
@@ -270,8 +279,9 @@ export function hitTestPrefectureShape(input: DragPointInput, prefecture: Prefec
         x: anchorClientPoint.x + offset.x,
         y: anchorClientPoint.y + offset.y
       };
+      const isHit = isClientPointInPath(path, testClientPoint);
 
-      if (isClientPointInPath(path, testClientPoint)) {
+      if (isHit) {
         return { isHit: true, clientPoint: testClientPoint };
       }
     }

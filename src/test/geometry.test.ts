@@ -6,6 +6,7 @@ import { fitToOkinawaMainIsland, fitToRegion } from "../utils/mapViewport";
 import {
   getMainlandCandidatePoints,
   HORIZONTAL_SNAP_SAMPLE_PX,
+  MAX_INTERNAL_ANCHORS,
   getPrefectureHitCandidatePoints,
   VERTICAL_SNAP_SAMPLE_PX,
   VERTICAL_SNAP_STEP_PX
@@ -28,9 +29,10 @@ describe("drop geometry", () => {
   });
 
   it("uses a compact vertical sampling band for shape hit points", () => {
-    expect(VERTICAL_SNAP_SAMPLE_PX).toBe(12);
-    expect(VERTICAL_SNAP_STEP_PX).toBe(6);
-    expect(HORIZONTAL_SNAP_SAMPLE_PX).toBe(4);
+    expect(VERTICAL_SNAP_SAMPLE_PX).toBe(24);
+    expect(VERTICAL_SNAP_STEP_PX).toBe(8);
+    expect(HORIZONTAL_SNAP_SAMPLE_PX).toBe(8);
+    expect(MAX_INTERNAL_ANCHORS).toBe(4);
   });
 
   it("prioritizes mainland anchors for small and island-heavy prefectures", () => {
@@ -70,6 +72,30 @@ describe("drop geometry", () => {
     expect(tokyo).toBeDefined();
     const dragViewBox = getDragLayerViewBox(tokyo!);
     expect(dragViewBox.height).toBeLessThan(tokyo!.bbox.height);
+  });
+
+  it("adds Lake Biwa as a subpath hole inside Shiga", () => {
+    const shiga = prefectureById.get("shiga");
+    expect(shiga).toBeDefined();
+
+    expect(shiga!.path).toContain("M 589.4 448.4");
+    expect(shiga!.path.match(/ M /g)?.length ?? 0).toBeGreaterThanOrEqual(1);
+
+    const lakeSamplePoints = [
+      { x: 589.4, y: 448.4 },
+      { x: 592.6, y: 453 },
+      { x: 593.7, y: 459.6 },
+      { x: 592.1, y: 466.8 },
+      { x: 588.8, y: 472 },
+      { x: 586.4, y: 468.6 },
+      { x: 587.1, y: 461.7 },
+      { x: 586.2, y: 455.8 },
+      { x: 587.4, y: 450.5 }
+    ];
+
+    for (const point of lakeSamplePoints) {
+      expect(containsPoint(shiga!.bbox, point)).toBe(true);
+    }
   });
 });
 
