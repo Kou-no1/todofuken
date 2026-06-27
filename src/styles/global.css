@@ -581,7 +581,10 @@ button:focus-visible {
   justify-self: center;
   display: grid;
   grid-template-columns: 34px auto;
-  align-items: baseline;
+  grid-template-areas:
+    "ink tagline"
+    "credit credit";
+  align-items: center;
   justify-content: center;
   justify-items: center;
   column-gap: 9px;
@@ -601,8 +604,7 @@ button:focus-visible {
 
 .home-footer::before {
   content: "";
-  grid-column: 1;
-  grid-row: 1;
+  grid-area: ink;
   width: 34px;
   height: 5px;
   border-radius: 999px;
@@ -610,22 +612,26 @@ button:focus-visible {
   align-self: center;
 }
 
-.home-footer span {
-  grid-column: 2;
-  grid-row: 1;
+.home-footer-tagline {
+  grid-area: tagline;
+}
+
+.home-footer-credit {
+  grid-area: credit;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
 }
 
 .home-footer strong {
-  grid-column: 1 / -1;
-  grid-row: 3;
   color: #27324a;
   font-size: 1.08em;
   font-weight: 900;
 }
 
 .home-footer small {
-  grid-column: 1 / -1;
-  grid-row: 2;
   color: #66718a;
   font-size: 0.9em;
   font-weight: 800;
