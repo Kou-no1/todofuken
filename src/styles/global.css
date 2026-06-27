@@ -579,11 +579,13 @@ button:focus-visible {
   width: fit-content;
   max-width: 100%;
   justify-self: center;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 34px auto;
   align-items: baseline;
   justify-content: center;
-  gap: 4px 9px;
+  justify-items: center;
+  column-gap: 9px;
+  row-gap: 2px;
   padding: 8px 14px 9px;
   border-radius: 999px;
   background:
@@ -599,20 +601,31 @@ button:focus-visible {
 
 .home-footer::before {
   content: "";
+  grid-column: 1;
+  grid-row: 1;
   width: 34px;
   height: 5px;
   border-radius: 999px;
   background: linear-gradient(90deg, var(--ink-cyan), var(--ink-orange));
-  flex: 0 0 34px;
+  align-self: center;
+}
+
+.home-footer span {
+  grid-column: 2;
+  grid-row: 1;
 }
 
 .home-footer strong {
+  grid-column: 1 / -1;
+  grid-row: 3;
   color: #27324a;
-  font-size: 1.06em;
+  font-size: 1.08em;
   font-weight: 900;
 }
 
 .home-footer small {
+  grid-column: 1 / -1;
+  grid-row: 2;
   color: #66718a;
   font-size: 0.9em;
   font-weight: 800;
@@ -2142,14 +2155,15 @@ button:focus-visible {
 
   .home-footer {
     width: 100%;
+    grid-template-columns: 26px auto;
     padding: 7px 10px;
-    gap: 3px 7px;
+    column-gap: 7px;
+    row-gap: 1px;
     font-size: 0.72rem;
   }
 
   .home-footer::before {
     width: 26px;
-    flex-basis: 26px;
   }
 
   .mode-card strong,
