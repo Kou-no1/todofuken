@@ -280,11 +280,15 @@ button:focus-visible {
   font-size: clamp(4rem, 13vw, 8.6rem);
   line-height: 0.9;
   letter-spacing: 0;
-  color: #12233f;
-  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.75);
+  color: #10294a;
+  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.9);
   text-shadow:
-    4px 5px 0 color-mix(in srgb, var(--ink-cyan) 72%, white),
-    -5px 9px 0 color-mix(in srgb, var(--ink-orange) 72%, white),
+    -2px -2px 0 #ffffff,
+    2px -2px 0 #ffffff,
+    -2px 2px 0 #ffffff,
+    2px 2px 0 #ffffff,
+    5px 6px 0 var(--ink-cyan),
+    -3px 10px 0 color-mix(in srgb, var(--ink-orange) 62%, white),
     0 16px 28px rgba(90, 62, 26, 0.14);
 }
 
@@ -316,8 +320,45 @@ button:focus-visible {
 }
 
 .mode-grid {
+  position: relative;
+  isolation: isolate;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   padding: 8px 6px 12px;
+}
+
+.mode-grid::before,
+.mode-grid::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.12;
+}
+
+.mode-grid::before {
+  left: min(44%, 420px);
+  top: -22px;
+  width: min(240px, 34vw);
+  height: 132px;
+  background:
+    radial-gradient(circle at 18% 78%, rgba(255, 255, 255, 0.92) 0 5px, transparent 6px),
+    radial-gradient(circle at 78% 16%, var(--ink-cyan) 0 7px, transparent 8px),
+    radial-gradient(ellipse at 48% 45%, var(--ink-cyan) 0 31%, transparent 32%);
+  clip-path: polygon(5% 44%, 21% 18%, 38% 30%, 54% 0, 62% 25%, 89% 12%, 78% 42%, 100% 57%, 70% 65%, 73% 96%, 50% 75%, 26% 100%, 32% 70%, 0 70%);
+  transform: rotate(-8deg);
+}
+
+.mode-grid::after {
+  right: min(8%, 80px);
+  top: 42%;
+  width: min(220px, 32vw);
+  height: 118px;
+  background:
+    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.82) 0 4px, transparent 5px),
+    radial-gradient(circle at 18% 18%, var(--ink-orange) 0 6px, transparent 7px),
+    radial-gradient(ellipse at 44% 52%, var(--ink-orange) 0 28%, transparent 29%);
+  clip-path: polygon(8% 48%, 20% 21%, 38% 28%, 54% 0, 63% 27%, 91% 14%, 80% 44%, 100% 58%, 72% 65%, 78% 96%, 51% 77%, 27% 100%, 30% 70%, 0 70%);
+  transform: rotate(12deg);
 }
 
 .region-grid {
@@ -345,6 +386,7 @@ button:focus-visible {
   --mode-tilt: -1deg;
   --mode-hover-tilt: 1.1deg;
   --mode-press-tilt: -2.2deg;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -353,9 +395,10 @@ button:focus-visible {
   padding-left: clamp(20px, 2.2vw, 26px);
   border-color: color-mix(in srgb, var(--card-accent, #ffb703) 64%, white);
   background:
-    radial-gradient(circle at 96% 10%, color-mix(in srgb, var(--ink-cyan) 22%, transparent) 0 18px, transparent 19px),
-    radial-gradient(circle at 6% 92%, color-mix(in srgb, var(--ink-orange) 18%, transparent) 0 22px, transparent 23px),
-    linear-gradient(135deg, color-mix(in srgb, var(--card-accent, #ffb703) 12%, white), #ffffff 68%);
+    radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--card-accent, #ffb703) 19%, transparent) 0 38px, transparent 39px),
+    radial-gradient(circle at 96% 10%, color-mix(in srgb, var(--ink-cyan) 25%, transparent) 0 18px, transparent 19px),
+    radial-gradient(circle at 6% 92%, color-mix(in srgb, var(--ink-orange) 20%, transparent) 0 22px, transparent 23px),
+    linear-gradient(135deg, color-mix(in srgb, var(--card-accent, #ffb703) 18%, white) 0%, color-mix(in srgb, var(--card-accent, #ffb703) 7%, white) 48%, #ffffff 74%);
   clip-path: polygon(0 7%, 5% 2%, 47% 0, 100% 5%, 98% 88%, 93% 100%, 39% 98%, 0 94%);
   transform: rotate(var(--mode-tilt));
   will-change: transform;
@@ -382,10 +425,18 @@ button:focus-visible {
 }
 
 .mode-card::before {
-  width: 12px;
-  transform: skewY(-14deg);
-  transform-origin: top left;
-  background: linear-gradient(180deg, var(--ink-cyan), var(--card-accent, #ffb703), var(--ink-orange));
+  inset: -14px auto auto -8px;
+  width: 132px;
+  height: 112px;
+  opacity: 0.82;
+  background:
+    linear-gradient(90deg, var(--card-accent, #ffb703) 0 16px, transparent 17px),
+    radial-gradient(circle at 38px 32px, color-mix(in srgb, var(--card-accent, #ffb703) 34%, transparent) 0 25px, transparent 26px),
+    radial-gradient(circle at 78px 58px, color-mix(in srgb, var(--ink-cyan) 20%, transparent) 0 19px, transparent 20px),
+    radial-gradient(ellipse at 52px 50px, color-mix(in srgb, var(--card-accent, #ffb703) 20%, white) 0 38%, transparent 39%);
+  clip-path: polygon(0 0, 15% 7%, 30% 0, 44% 12%, 66% 4%, 78% 22%, 100% 18%, 86% 46%, 98% 65%, 69% 67%, 62% 100%, 42% 76%, 20% 91%, 22% 62%, 0 70%);
+  transform: rotate(-7deg);
+  transform-origin: left top;
 }
 
 .mode-card::after {
@@ -408,31 +459,57 @@ button:focus-visible {
 
 .mode-card > * {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
-.mode-card:hover,
+.mode-card:hover:not(.is-launching),
 .region-card:hover {
   border-color: var(--card-accent, var(--accent));
   transform: translateY(-3px);
 }
 
-.mode-card:hover {
+.mode-card:hover:not(.is-launching) {
   border-color: color-mix(in srgb, var(--card-accent, var(--accent)) 70%, var(--ink-cyan));
   transform: translate(4px, -6px) rotate(var(--mode-hover-tilt)) scale(1.015);
   animation: mode-ink-bounce 260ms cubic-bezier(0.22, 1.25, 0.36, 1) both;
   box-shadow: 0 10px 0 rgba(0, 200, 224, 0.12), 0 20px 34px rgba(90, 62, 26, 0.15);
 }
 
-.mode-card:hover::after {
+.mode-card:hover:not(.is-launching)::after {
   opacity: 0.95;
   transform: rotate(3deg) scale(1.08);
 }
 
-.mode-card:active {
+.mode-card:active:not(.is-launching) {
   transform: translate(6px, 2px) rotate(var(--mode-press-tilt)) scale(0.985);
   animation: mode-press-bounce 180ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
   box-shadow: 0 4px 0 rgba(124, 72, 20, 0.12);
+}
+
+.mode-card.is-launch-locked {
+  pointer-events: none;
+}
+
+.mode-card.is-launching {
+  z-index: 9;
+  pointer-events: none;
+  border-color: color-mix(in srgb, var(--card-accent, var(--accent)) 70%, var(--ink-orange));
+  animation: mode-card-launch 420ms cubic-bezier(0.17, 0.88, 0.22, 1.32) both;
+  box-shadow: 0 16px 0 rgba(255, 107, 26, 0.16), 0 28px 42px rgba(90, 62, 26, 0.2);
+}
+
+.mode-card.is-launching::after {
+  right: 50%;
+  top: 50%;
+  width: 168px;
+  height: 126px;
+  opacity: 0;
+  background:
+    radial-gradient(circle at 22% 72%, rgba(255, 255, 255, 0.92) 0 5px, transparent 6px),
+    radial-gradient(circle at 82% 28%, rgba(255, 255, 255, 0.86) 0 6px, transparent 7px),
+    radial-gradient(circle at 56% 48%, color-mix(in srgb, var(--ink-cyan) 52%, var(--card-accent, #ffb703)) 0 17%, transparent 18%),
+    radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--card-accent, #ffb703) 68%, var(--ink-orange)) 0 38%, transparent 39%);
+  animation: mode-card-ink-burst 420ms ease-out both;
 }
 
 .region-card-top {
@@ -493,8 +570,10 @@ button:focus-visible {
 .primary-mode {
   border-color: #ffca3a;
   background:
+    radial-gradient(circle at 18% 18%, rgba(255, 122, 102, 0.2) 0 38px, transparent 39px),
     radial-gradient(circle at 92% 18%, rgba(0, 200, 224, 0.16) 0 24px, transparent 25px),
-    linear-gradient(135deg, #fff7d6, #ffffff 70%);
+    radial-gradient(circle at 6% 92%, rgba(255, 107, 26, 0.16) 0 22px, transparent 23px),
+    linear-gradient(135deg, #fff1df 0%, #fff7d6 46%, #ffffff 74%);
 }
 
 .mode-red {
@@ -1387,6 +1466,38 @@ button:focus-visible {
   }
 }
 
+@keyframes mode-card-launch {
+  0% {
+    transform: rotate(var(--mode-tilt)) translate(0, 0) scale(1);
+  }
+  30% {
+    transform: translate(8px, 10px) rotate(-3deg) scale(0.88);
+  }
+  60% {
+    transform: translate(14px, -12px) rotate(2deg) scale(1.12);
+  }
+  85% {
+    transform: translate(4px, 2px) rotate(-1deg) scale(0.97);
+  }
+  100% {
+    transform: translate(0, 0) rotate(var(--mode-tilt)) scale(1);
+  }
+}
+
+@keyframes mode-card-ink-burst {
+  0% {
+    opacity: 0;
+    transform: translate(50%, -50%) rotate(10deg) scale(0.35);
+  }
+  28% {
+    opacity: 0.92;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(50%, -50%) rotate(-7deg) scale(1.65);
+  }
+}
+
 @keyframes pop-in {
   0% {
     transform: scale(0.94);
@@ -1521,8 +1632,12 @@ button:focus-visible {
   .home-hero h1 {
     font-size: clamp(3.5rem, 17vw, 4.5rem);
     text-shadow:
-      2px 3px 0 color-mix(in srgb, var(--ink-cyan) 62%, white),
-      -3px 6px 0 color-mix(in srgb, var(--ink-orange) 64%, white),
+      -1px -1px 0 #ffffff,
+      1px -1px 0 #ffffff,
+      -1px 1px 0 #ffffff,
+      1px 1px 0 #ffffff,
+      3px 4px 0 var(--ink-cyan),
+      -2px 6px 0 color-mix(in srgb, var(--ink-orange) 56%, white),
       0 11px 18px rgba(90, 62, 26, 0.12);
   }
 
@@ -1552,6 +1667,22 @@ button:focus-visible {
 
   .mode-grid {
     padding: 4px 3px 9px;
+  }
+
+  .mode-grid::before {
+    left: 48%;
+    top: -18px;
+    width: 168px;
+    height: 92px;
+    opacity: 0.1;
+  }
+
+  .mode-grid::after {
+    right: -18%;
+    top: 34%;
+    width: 154px;
+    height: 86px;
+    opacity: 0.08;
   }
 
   .mode-card,

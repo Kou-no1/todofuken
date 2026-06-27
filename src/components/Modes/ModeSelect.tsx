@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { loadBestTime } from "../../hooks/useBestTime";
 import { formatClock } from "../../utils/timeFormat";
@@ -10,6 +11,9 @@ type ModeCardProps = {
   description: ReactNode;
   meta: ReactNode;
   onClick: () => void;
+  isLaunchLocked?: boolean;
+  isLaunching?: boolean;
+  onLaunchAnimationEnd?: () => void;
 };
 
 type ModeSelectProps = {
@@ -20,9 +24,31 @@ type ModeSelectProps = {
   onCapitalQuiz: () => void;
 };
 
-function ModeCard({ className, emoji, label, title, description, meta, onClick }: ModeCardProps) {
+function ModeCard({
+  className,
+  emoji,
+  label,
+  title,
+  description,
+  meta,
+  onClick,
+  isLaunchLocked = false,
+  isLaunching = false,
+  onLaunchAnimationEnd
+}: ModeCardProps) {
   return (
-    <button type="button" className={className} onClick={onClick}>
+    <button
+      type="button"
+      className={`${className}${isLaunching ? " is-launching" : ""}${isLaunchLocked ? " is-launch-locked" : ""}`}
+      aria-disabled={isLaunchLocked || undefined}
+      data-launching={isLaunching || undefined}
+      onClick={onClick}
+      onAnimationEnd={(event) => {
+        if (isLaunching && event.animationName === "mode-card-launch" && event.elapsedTime >= 0.32) {
+          onLaunchAnimationEnd?.();
+        }
+      }}
+    >
       <span className="mode-card-top">
         <span className="mode-emoji" aria-hidden="true">
           {emoji}
@@ -55,6 +81,46 @@ export function ModeSelect({
   const nationalBest = loadBestTime("prefecture-national");
   const learnBest = loadBestTime("prefecture-learn-national");
   const quizBest = loadBestTime("capital-quiz");
+  const [launchingMode, setLaunchingMode] = useState<string | null>(null);
+  const launchActionRef = useRef<(() => void) | null>(null);
+  const launchTimerRef = useRef<number | null>(null);
+  const isLaunchLockedRef = useRef(false);
+
+  const finishLaunch = () => {
+    if (!isLaunchLockedRef.current) {
+      return;
+    }
+
+    if (launchTimerRef.current !== null) {
+      window.clearTimeout(launchTimerRef.current);
+      launchTimerRef.current = null;
+    }
+
+    const action = launchActionRef.current;
+    launchActionRef.current = null;
+    isLaunchLockedRef.current = false;
+    setLaunchingMode(null);
+    action?.();
+  };
+
+  const startLaunch = (modeId: string, action: () => void) => {
+    if (isLaunchLockedRef.current) {
+      return;
+    }
+
+    isLaunchLockedRef.current = true;
+    launchActionRef.current = action;
+    setLaunchingMode(modeId);
+    launchTimerRef.current = window.setTimeout(finishLaunch, 460);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (launchTimerRef.current !== null) {
+        window.clearTimeout(launchTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <main className="home-screen">
@@ -72,7 +138,10 @@ export function ModeSelect({
           title="全国47ピース"
           description="赤いガイドなしでじぶんのベストにちょうせん"
           meta={nationalBest ? `ベスト ${formatClock(nationalBest.bestTimeSeconds)}` : "まずはちょうせん"}
-          onClick={onNationalTimeAttack}
+          isLaunchLocked={launchingMode !== null}
+          isLaunching={launchingMode === "national-time-attack"}
+          onLaunchAnimationEnd={finishLaunch}
+          onClick={() => startLaunch("national-time-attack", onNationalTimeAttack)}
         />
         <ModeCard
           className="mode-card mode-green"
@@ -81,7 +150,10 @@ export function ModeSelect({
           title="全国を練習"
           description="赤いガイドを見ながら形と場所を覚える"
           meta={learnBest ? `練習ベスト ${formatClock(learnBest.bestTimeSeconds)}` : "ゆっくり練習"}
-          onClick={onNationalLearn}
+          isLaunchLocked={launchingMode !== null}
+          isLaunching={launchingMode === "national-learn"}
+          onLaunchAnimationEnd={finishLaunch}
+          onClick={() => startLaunch("national-learn", onNationalLearn)}
         />
         <ModeCard
           className="mode-card mode-blue"
@@ -90,7 +162,10 @@ export function ModeSelect({
           title="地方ごとにちょうせん"
           description="ガイドなしで6地方を少しずつこうりゃく"
           meta="地方ごとにベストをのこす"
-          onClick={onRegionTimeAttack}
+          isLaunchLocked={launchingMode !== null}
+          isLaunching={launchingMode === "region-time-attack"}
+          onLaunchAnimationEnd={finishLaunch}
+          onClick={() => startLaunch("region-time-attack", onRegionTimeAttack)}
         />
         <ModeCard
           className="mode-card mode-orange"
@@ -99,7 +174,10 @@ export function ModeSelect({
           title="少しずつ練習"
           description="赤いガイドつきで地方ごとに覚える"
           meta="北海道・東北から九州・沖縄まで"
-          onClick={onRegionLearn}
+          isLaunchLocked={launchingMode !== null}
+          isLaunching={launchingMode === "region-learn"}
+          onLaunchAnimationEnd={finishLaunch}
+          onClick={() => startLaunch("region-learn", onRegionLearn)}
         />
         <ModeCard
           className="mode-card mode-purple"
@@ -113,7 +191,10 @@ export function ModeSelect({
             </>
           }
           meta={quizBest ? `全国ベスト ${formatClock(quizBest.bestTimeSeconds)}` : "タイムものこす"}
-          onClick={onCapitalQuiz}
+          isLaunchLocked={launchingMode !== null}
+          isLaunching={launchingMode === "capital-quiz"}
+          onLaunchAnimationEnd={finishLaunch}
+          onClick={() => startLaunch("capital-quiz", onCapitalQuiz)}
         />
       </section>
     </main>
