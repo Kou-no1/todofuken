@@ -1,0 +1,35 @@
+{
+  "name": "パズルでおぼえる「都道府県」",
+  "short_name": "都道府県パズル",
+  "description": "都道府県の形と場所をパズルで覚える学習アプリです。",
+  "start_url": "/todofuken/",
+  "scope": "/todofuken/",
+  "display": "standalone",
+  "background_color": "#FFF7D6",
+  "theme_color": "#00C8E0",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

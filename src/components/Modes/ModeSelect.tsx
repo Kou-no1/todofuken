@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 import { loadBestTime } from "../../hooks/useBestTime";
 import { formatClock } from "../../utils/timeFormat";
 
@@ -23,6 +23,75 @@ type ModeSelectProps = {
   onRegionTimeAttack: () => void;
   onCapitalQuiz: () => void;
 };
+
+const ONBOARDING_SEEN_KEY = "todofuken:onboarding:v1:seen";
+
+type OnboardingOverlayProps = {
+  onClose: () => void;
+  startButtonRef: RefObject<HTMLButtonElement | null>;
+};
+
+function OnboardingOverlay({ onClose, startButtonRef }: OnboardingOverlayProps) {
+  return (
+    <div className="onboarding-backdrop" role="presentation">
+      <section
+        className="onboarding-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="onboarding-title"
+        aria-describedby="onboarding-description"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            onClose();
+          }
+        }}
+      >
+        <button type="button" className="onboarding-close" aria-label="遊び方をとじる" onClick={onClose}>
+          ×
+        </button>
+        <p className="onboarding-kicker">はじめての人へ</p>
+        <h2 id="onboarding-title">ピースを地図にはめよう！</h2>
+        <p id="onboarding-description" className="onboarding-copy">
+          ピースをタップして、その形が合う場所までドラッグしよう。近くに行くと、すっとはまるよ。
+        </p>
+
+        <div className="onboarding-demo" aria-hidden="true">
+          <div className="demo-map-slot">
+            <span>地図の枠</span>
+          </div>
+          <div className="demo-piece">県</div>
+          <div className="demo-pointer" />
+          <div className="demo-spark demo-spark-one" />
+          <div className="demo-spark demo-spark-two" />
+        </div>
+
+        <ol className="onboarding-steps" aria-label="遊び方の手順">
+          <li>
+            <strong>1</strong>
+            <span>ピースを選ぶ</span>
+          </li>
+          <li>
+            <strong>2</strong>
+            <span>地図まで運ぶ</span>
+          </li>
+          <li>
+            <strong>3</strong>
+            <span>はまると正解！</span>
+          </li>
+        </ol>
+
+        <div className="onboarding-actions">
+          <button type="button" className="secondary-button onboarding-skip" onClick={onClose}>
+            スキップ
+          </button>
+          <button type="button" className="primary-button onboarding-start" onClick={onClose} ref={startButtonRef}>
+            はじめる
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
 
 function ModeCard({
   className,
@@ -81,10 +150,12 @@ export function ModeSelect({
   const nationalBest = loadBestTime("prefecture-national");
   const learnBest = loadBestTime("prefecture-learn-national");
   const quizBest = loadBestTime("capital-quiz");
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [launchingMode, setLaunchingMode] = useState<string | null>(null);
   const launchActionRef = useRef<(() => void) | null>(null);
   const launchTimerRef = useRef<number | null>(null);
   const isLaunchLockedRef = useRef(false);
+  const onboardingStartRef = useRef<HTMLButtonElement | null>(null);
 
   const finishLaunch = () => {
     if (!isLaunchLockedRef.current) {
@@ -122,12 +193,48 @@ export function ModeSelect({
     };
   }, []);
 
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem(ONBOARDING_SEEN_KEY) !== "1") {
+        setShowOnboarding(true);
+      }
+    } catch {
+      setShowOnboarding(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!showOnboarding) {
+      return;
+    }
+
+    const focusTimer = window.setTimeout(() => {
+      onboardingStartRef.current?.focus();
+    }, 60);
+
+    return () => window.clearTimeout(focusTimer);
+  }, [showOnboarding]);
+
+  const closeOnboarding = () => {
+    try {
+      window.localStorage.setItem(ONBOARDING_SEEN_KEY, "1");
+    } catch {
+      // localStorageが使えない環境でも、今の画面では閉じられるようにする。
+    }
+
+    setShowOnboarding(false);
+  };
+
   return (
     <main className="home-screen">
+      {showOnboarding ? <OnboardingOverlay onClose={closeOnboarding} startButtonRef={onboardingStartRef} /> : null}
       <section className="home-hero" aria-labelledby="home-title">
         <p className="hero-catch">パズルで覚える！</p>
         <h1 id="home-title">都道府県</h1>
         <p className="hero-copy">形を見て、場所を思い出して、都道府県を覚えよう！</p>
+        <button type="button" className="onboarding-replay-button" onClick={() => setShowOnboarding(true)}>
+          遊び方をもう一回
+        </button>
       </section>
 
       <section className="mode-grid" aria-label="モードを選ぶ">
@@ -197,6 +304,11 @@ export function ModeSelect({
           onClick={() => startLaunch("capital-quiz", onCapitalQuiz)}
         />
       </section>
+      <footer className="home-footer">
+        <span>「あったらいいな」をつくってる</span>
+        <strong>野村晃一</strong>
+        <small>All rights reserved.</small>
+      </footer>
     </main>
   );
 }
