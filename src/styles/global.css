@@ -20,6 +20,8 @@
   --placed: #67d99f;
   --focus: #ff4f7b;
   --sky: #dff7ff;
+  --ink-cyan: #00c8e0;
+  --ink-orange: #ff6b1a;
   --shadow: 0 16px 36px rgba(90, 62, 26, 0.16);
   --button-shadow: 0 7px 0 rgba(124, 72, 20, 0.16), 0 16px 30px rgba(90, 62, 26, 0.12);
 }
@@ -157,7 +159,6 @@ button:focus-visible {
 .primary-button:active,
 .secondary-button:active,
 .ghost-button:active,
-.mode-card:active,
 .region-card:active,
 .puzzle-piece:active,
 .option-button:active {
@@ -180,11 +181,76 @@ button:focus-visible {
   padding: clamp(16px, 4vw, 34px);
 }
 
+.home-screen {
+  position: relative;
+  isolation: isolate;
+}
+
+.home-screen::before,
+.home-screen::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.home-screen::before {
+  inset: -8% -4% auto -5%;
+  height: 62%;
+  opacity: 0.22;
+  background:
+    radial-gradient(circle at 16% 24%, var(--ink-cyan) 0 10px, transparent 11px),
+    radial-gradient(circle at 24% 12%, var(--ink-cyan) 0 5px, transparent 6px),
+    radial-gradient(circle at 78% 24%, var(--ink-orange) 0 11px, transparent 12px),
+    radial-gradient(circle at 88% 38%, var(--ink-orange) 0 5px, transparent 6px),
+    radial-gradient(ellipse at 18% 28%, var(--ink-cyan) 0 21%, transparent 22%),
+    radial-gradient(ellipse at 82% 20%, var(--ink-orange) 0 19%, transparent 20%);
+  clip-path: polygon(2% 16%, 10% 8%, 18% 18%, 25% 6%, 33% 28%, 42% 14%, 50% 31%, 59% 12%, 67% 29%, 78% 7%, 86% 24%, 96% 15%, 90% 56%, 98% 68%, 79% 70%, 70% 91%, 58% 70%, 47% 91%, 39% 66%, 23% 78%, 19% 58%, 3% 65%);
+}
+
+.home-screen::after {
+  right: -7%;
+  bottom: 8%;
+  width: min(360px, 46vw);
+  height: min(240px, 34vh);
+  opacity: 0.15;
+  background:
+    radial-gradient(circle at 18% 72%, var(--ink-orange) 0 6px, transparent 7px),
+    radial-gradient(circle at 70% 18%, var(--ink-cyan) 0 7px, transparent 8px),
+    radial-gradient(ellipse at 46% 55%, var(--ink-orange) 0 28%, transparent 29%),
+    radial-gradient(ellipse at 64% 35%, var(--ink-cyan) 0 20%, transparent 21%);
+  clip-path: polygon(6% 45%, 22% 28%, 19% 7%, 42% 21%, 60% 0, 63% 24%, 91% 16%, 79% 44%, 100% 57%, 72% 65%, 78% 96%, 51% 76%, 29% 100%, 30% 70%, 0 70%);
+}
+
+.home-screen > * {
+  position: relative;
+  z-index: 1;
+}
+
 .home-hero {
+  position: relative;
   display: grid;
   gap: 8px;
   align-content: end;
   min-height: 0;
+  padding-inline: clamp(0px, 1vw, 12px);
+}
+
+.home-hero::before {
+  content: "";
+  position: absolute;
+  left: clamp(-22px, -2vw, -8px);
+  top: clamp(18px, 4vh, 42px);
+  width: min(520px, 58vw);
+  height: min(210px, 28vh);
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.82;
+  background:
+    radial-gradient(circle at 14% 18%, #ffffff 0 7px, transparent 8px),
+    radial-gradient(circle at 88% 22%, rgba(255, 255, 255, 0.82) 0 5px, transparent 6px),
+    linear-gradient(135deg, color-mix(in srgb, var(--ink-cyan) 84%, white), color-mix(in srgb, var(--ink-orange) 88%, white));
+  clip-path: polygon(4% 40%, 15% 22%, 12% 4%, 31% 15%, 45% 0, 53% 18%, 72% 6%, 78% 27%, 96% 20%, 88% 48%, 100% 62%, 77% 67%, 78% 96%, 55% 77%, 38% 100%, 29% 76%, 9% 84%, 14% 58%);
 }
 
 .hero-kicker,
@@ -199,12 +265,14 @@ button:focus-visible {
 
 .hero-catch {
   width: fit-content;
-  padding: 6px 12px;
+  padding: 7px 14px;
   border-radius: 999px;
-  background: #fff0b9;
-  color: var(--accent-dark);
+  background: linear-gradient(90deg, var(--ink-cyan), var(--ink-orange));
+  color: #ffffff;
   font-size: clamp(1.25rem, 3vw, 2rem);
-  box-shadow: inset 0 -4px 0 rgba(255, 122, 89, 0.14);
+  transform: rotate(-2deg);
+  text-shadow: 0 2px 0 rgba(38, 50, 76, 0.22);
+  box-shadow: 0 8px 0 rgba(38, 50, 76, 0.12), inset 0 -4px 0 rgba(255, 255, 255, 0.18);
 }
 
 .home-hero h1 {
@@ -212,10 +280,12 @@ button:focus-visible {
   font-size: clamp(4rem, 13vw, 8.6rem);
   line-height: 0.9;
   letter-spacing: 0;
-  color: #26324c;
+  color: #12233f;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.75);
   text-shadow:
-    0 6px 0 rgba(255, 202, 58, 0.42),
-    0 14px 28px rgba(90, 62, 26, 0.14);
+    4px 5px 0 color-mix(in srgb, var(--ink-cyan) 72%, white),
+    -5px 9px 0 color-mix(in srgb, var(--ink-orange) 72%, white),
+    0 16px 28px rgba(90, 62, 26, 0.14);
 }
 
 .select-heading h1 {
@@ -247,6 +317,7 @@ button:focus-visible {
 
 .mode-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 8px 6px 12px;
 }
 
 .region-grid {
@@ -267,16 +338,27 @@ button:focus-visible {
   cursor: pointer;
   box-shadow: var(--button-shadow);
   overflow: hidden;
-  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+  transition: transform 180ms cubic-bezier(0.18, 0.9, 0.28, 1.25), box-shadow 140ms ease, border-color 140ms ease, filter 140ms ease;
 }
 
 .mode-card {
+  --mode-tilt: -1deg;
+  --mode-hover-tilt: 1.1deg;
+  --mode-press-tilt: -2.2deg;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
   min-height: 174px;
   padding-left: clamp(20px, 2.2vw, 26px);
+  border-color: color-mix(in srgb, var(--card-accent, #ffb703) 64%, white);
+  background:
+    radial-gradient(circle at 96% 10%, color-mix(in srgb, var(--ink-cyan) 22%, transparent) 0 18px, transparent 19px),
+    radial-gradient(circle at 6% 92%, color-mix(in srgb, var(--ink-orange) 18%, transparent) 0 22px, transparent 23px),
+    linear-gradient(135deg, color-mix(in srgb, var(--card-accent, #ffb703) 12%, white), #ffffff 68%);
+  clip-path: polygon(0 7%, 5% 2%, 47% 0, 100% 5%, 98% 88%, 93% 100%, 39% 98%, 0 94%);
+  transform: rotate(var(--mode-tilt));
+  will-change: transform;
 }
 
 .region-card {
@@ -299,10 +381,58 @@ button:focus-visible {
   background: var(--card-accent, #ffb703);
 }
 
+.mode-card::before {
+  width: 12px;
+  transform: skewY(-14deg);
+  transform-origin: top left;
+  background: linear-gradient(180deg, var(--ink-cyan), var(--card-accent, #ffb703), var(--ink-orange));
+}
+
+.mode-card::after {
+  content: "";
+  position: absolute;
+  right: -16px;
+  top: -18px;
+  width: 108px;
+  height: 74px;
+  pointer-events: none;
+  opacity: 0.72;
+  background:
+    radial-gradient(circle at 16% 70%, #ffffff 0 4px, transparent 5px),
+    radial-gradient(circle at 78% 16%, rgba(255, 255, 255, 0.78) 0 5px, transparent 6px),
+    radial-gradient(ellipse at 48% 46%, color-mix(in srgb, var(--card-accent, #ffb703) 70%, var(--ink-cyan)) 0 43%, transparent 44%);
+  clip-path: polygon(7% 48%, 20% 20%, 39% 28%, 55% 0, 64% 28%, 91% 14%, 80% 44%, 100% 57%, 70% 66%, 74% 96%, 51% 75%, 28% 100%, 31% 70%, 0 70%);
+  transform: rotate(12deg) scale(0.98);
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.mode-card > * {
+  position: relative;
+  z-index: 1;
+}
+
 .mode-card:hover,
 .region-card:hover {
   border-color: var(--card-accent, var(--accent));
   transform: translateY(-3px);
+}
+
+.mode-card:hover {
+  border-color: color-mix(in srgb, var(--card-accent, var(--accent)) 70%, var(--ink-cyan));
+  transform: translate(4px, -6px) rotate(var(--mode-hover-tilt)) scale(1.015);
+  animation: mode-ink-bounce 260ms cubic-bezier(0.22, 1.25, 0.36, 1) both;
+  box-shadow: 0 10px 0 rgba(0, 200, 224, 0.12), 0 20px 34px rgba(90, 62, 26, 0.15);
+}
+
+.mode-card:hover::after {
+  opacity: 0.95;
+  transform: rotate(3deg) scale(1.08);
+}
+
+.mode-card:active {
+  transform: translate(6px, 2px) rotate(var(--mode-press-tilt)) scale(0.985);
+  animation: mode-press-bounce 180ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  box-shadow: 0 4px 0 rgba(124, 72, 20, 0.12);
 }
 
 .region-card-top {
@@ -362,27 +492,44 @@ button:focus-visible {
 
 .primary-mode {
   border-color: #ffca3a;
-  background: #fff7d6;
+  background:
+    radial-gradient(circle at 92% 18%, rgba(0, 200, 224, 0.16) 0 24px, transparent 25px),
+    linear-gradient(135deg, #fff7d6, #ffffff 70%);
 }
 
 .mode-red {
   --card-accent: #ff7a66;
+  --mode-tilt: -1.4deg;
+  --mode-hover-tilt: 1.1deg;
+  --mode-press-tilt: -2.1deg;
 }
 
 .mode-green {
   --card-accent: #8bd450;
+  --mode-tilt: 1deg;
+  --mode-hover-tilt: -1.2deg;
+  --mode-press-tilt: 2deg;
 }
 
 .mode-blue {
   --card-accent: #55c7f7;
+  --mode-tilt: -0.7deg;
+  --mode-hover-tilt: 1.3deg;
+  --mode-press-tilt: -1.8deg;
 }
 
 .mode-orange {
   --card-accent: #ffb84d;
+  --mode-tilt: 1.2deg;
+  --mode-hover-tilt: -1deg;
+  --mode-press-tilt: 2.1deg;
 }
 
 .mode-purple {
   --card-accent: #b28cff;
+  --mode-tilt: -0.9deg;
+  --mode-hover-tilt: 1.4deg;
+  --mode-press-tilt: -2deg;
 }
 
 .mode-card-top {
@@ -400,17 +547,20 @@ button:focus-visible {
   display: grid;
   place-items: center;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--card-accent, #ffb703) 22%, white);
+  background:
+    radial-gradient(circle at 76% 18%, rgba(255, 255, 255, 0.95) 0 4px, transparent 5px),
+    linear-gradient(135deg, color-mix(in srgb, var(--card-accent, #ffb703) 34%, white), color-mix(in srgb, var(--ink-cyan) 22%, white));
   font-size: 1.65rem;
   line-height: 1;
-  box-shadow: inset 0 -4px 0 rgba(39, 50, 74, 0.08);
+  box-shadow: 0 4px 0 rgba(0, 200, 224, 0.16), inset 0 -4px 0 rgba(39, 50, 74, 0.08);
 }
 
 .mode-label {
   min-width: 0;
   padding: 4px 8px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--card-accent, #ffb703) 18%, white);
+  background: color-mix(in srgb, var(--card-accent, #ffb703) 20%, white);
+  border: 2px solid color-mix(in srgb, var(--ink-orange) 30%, white);
   color: #27324a;
   font-size: 0.88rem;
   font-weight: 900;
@@ -1216,6 +1366,27 @@ button:focus-visible {
   }
 }
 
+@keyframes mode-ink-bounce {
+  0% {
+    transform: rotate(var(--mode-tilt)) translate(0, 0) scale(1);
+  }
+  52% {
+    transform: translate(8px, -9px) rotate(var(--mode-hover-tilt)) scale(1.03);
+  }
+  100% {
+    transform: translate(4px, -6px) rotate(var(--mode-hover-tilt)) scale(1.015);
+  }
+}
+
+@keyframes mode-press-bounce {
+  0% {
+    transform: translate(4px, -6px) rotate(var(--mode-hover-tilt)) scale(1.015);
+  }
+  100% {
+    transform: translate(6px, 2px) rotate(var(--mode-press-tilt)) scale(0.985);
+  }
+}
+
 @keyframes pop-in {
   0% {
     transform: scale(0.94);
@@ -1327,8 +1498,32 @@ button:focus-visible {
     gap: 10px;
   }
 
+  .home-screen::before {
+    inset: -6% -20% auto -18%;
+    height: 42%;
+    opacity: 0.18;
+  }
+
+  .home-screen::after {
+    right: -24%;
+    bottom: 20%;
+    opacity: 0.11;
+  }
+
+  .home-hero::before {
+    left: -18px;
+    top: 24px;
+    width: 92vw;
+    height: 150px;
+    opacity: 0.72;
+  }
+
   .home-hero h1 {
     font-size: clamp(3.5rem, 17vw, 4.5rem);
+    text-shadow:
+      2px 3px 0 color-mix(in srgb, var(--ink-cyan) 62%, white),
+      -3px 6px 0 color-mix(in srgb, var(--ink-orange) 64%, white),
+      0 11px 18px rgba(90, 62, 26, 0.12);
   }
 
   .select-heading h1 {
@@ -1355,11 +1550,34 @@ button:focus-visible {
     gap: 10px;
   }
 
+  .mode-grid {
+    padding: 4px 3px 9px;
+  }
+
   .mode-card,
   .region-card {
     min-height: 162px;
     padding: 12px 12px 13px 18px;
     gap: 6px;
+  }
+
+  .mode-card {
+    --mode-tilt: -0.45deg;
+    --mode-hover-tilt: 0.65deg;
+    --mode-press-tilt: -0.8deg;
+    clip-path: polygon(0 5%, 4% 1%, 47% 0, 100% 4%, 99% 91%, 94% 100%, 38% 99%, 0 95%);
+  }
+
+  .mode-card:hover {
+    transform: translate(2px, -4px) rotate(var(--mode-hover-tilt)) scale(1.008);
+  }
+
+  .mode-card::after {
+    width: 84px;
+    height: 58px;
+    right: -14px;
+    top: -16px;
+    opacity: 0.58;
   }
 
   .mode-card strong,
