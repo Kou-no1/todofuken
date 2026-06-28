@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { ReactNode, RefObject } from "react";
 import { loadBestTime } from "../../hooks/useBestTime";
 import { formatClock } from "../../utils/timeFormat";
@@ -11,6 +11,7 @@ type ModeCardProps = {
   description: ReactNode;
   meta: ReactNode;
   onClick: () => void;
+  style?: CSSProperties;
   isLaunchLocked?: boolean;
   isLaunching?: boolean;
   onLaunchAnimationEnd?: () => void;
@@ -102,6 +103,7 @@ function ModeCard({
   description,
   meta,
   onClick,
+  style,
   isLaunchLocked = false,
   isLaunching = false,
   onLaunchAnimationEnd
@@ -110,6 +112,7 @@ function ModeCard({
     <button
       type="button"
       className={`${className}${isLaunching ? " is-launching" : ""}${isLaunchLocked ? " is-launch-locked" : ""}`}
+      style={style}
       aria-disabled={isLaunchLocked || undefined}
       data-launching={isLaunching || undefined}
       onClick={onClick}
@@ -255,6 +258,7 @@ export function ModeSelect({
         />
         <ModeCard
           className="mode-card mode-orange"
+          style={{ "--card-accent": "#FF7A1A" } as CSSProperties}
           emoji="🎨"
           label="カラーで練習"
           title="全国カラーモード"

@@ -881,44 +881,44 @@ button:focus-visible {
 }
 
 .primary-mode {
-  border-color: #ffca3a;
+  border-color: color-mix(in srgb, var(--card-accent, #e8332a) 52%, white);
   background:
-    radial-gradient(circle at 18% 18%, rgba(255, 122, 102, 0.2) 0 38px, transparent 39px),
+    radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--card-accent, #e8332a) 24%, transparent) 0 38px, transparent 39px),
     radial-gradient(circle at 92% 18%, rgba(0, 200, 224, 0.16) 0 24px, transparent 25px),
     radial-gradient(circle at 6% 92%, rgba(255, 107, 26, 0.16) 0 22px, transparent 23px),
     linear-gradient(135deg, #fff1df 0%, #fff7d6 46%, #ffffff 74%);
 }
 
 .mode-red {
-  --card-accent: #ff7a66;
+  --card-accent: #e8332a;
   --mode-tilt: -1.4deg;
   --mode-hover-tilt: 1.1deg;
   --mode-press-tilt: -2.1deg;
 }
 
 .mode-green {
-  --card-accent: #8bd450;
+  --card-accent: #f5c400;
   --mode-tilt: 1deg;
   --mode-hover-tilt: -1.2deg;
   --mode-press-tilt: 2deg;
 }
 
 .mode-blue {
-  --card-accent: #55c7f7;
+  --card-accent: #2eaa4a;
   --mode-tilt: -0.7deg;
   --mode-hover-tilt: 1.3deg;
   --mode-press-tilt: -1.8deg;
 }
 
 .mode-orange {
-  --card-accent: #ffb84d;
+  --card-accent: #1a7ae8;
   --mode-tilt: 1.2deg;
   --mode-hover-tilt: -1deg;
   --mode-press-tilt: 2.1deg;
 }
 
 .mode-purple {
-  --card-accent: #b28cff;
+  --card-accent: #8b3ae8;
   --mode-tilt: -0.9deg;
   --mode-hover-tilt: 1.4deg;
   --mode-press-tilt: -2deg;
