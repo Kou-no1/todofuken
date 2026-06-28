@@ -22,6 +22,8 @@
   --sky: #dff7ff;
   --ink-cyan: #00c8e0;
   --ink-orange: #ff6b1a;
+  --bottom-tray-height: 124px;
+  --bottom-tray-safe-area: env(safe-area-inset-bottom, 0px);
   --shadow: 0 16px 36px rgba(90, 62, 26, 0.16);
   --button-shadow: 0 7px 0 rgba(124, 72, 20, 0.16), 0 16px 30px rgba(90, 62, 26, 0.12);
 }
@@ -1303,14 +1305,16 @@ button:focus-visible {
 }
 
 .bottom-tray {
-  height: 124px;
+  height: calc(var(--bottom-tray-height) + var(--bottom-tray-safe-area));
   min-height: 0;
+  padding-bottom: var(--bottom-tray-safe-area);
   overflow: hidden;
   background: rgba(255, 255, 255, 0.95);
   border-top: 3px solid #ffe08a;
   box-shadow: 0 -10px 24px rgba(90, 62, 26, 0.12);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
+  touch-action: pan-x;
 }
 
 .tray-label {
@@ -1329,6 +1333,8 @@ button:focus-visible {
   overflow-y: hidden;
   padding: 4px 14px 12px;
   touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: none;
   scrollbar-width: thin;
 }
 
@@ -2208,7 +2214,8 @@ button:focus-visible {
   }
 
   .puzzle-screen {
-    grid-template-rows: auto auto minmax(0, 1fr) 106px;
+    --bottom-tray-height: 106px;
+    grid-template-rows: auto auto minmax(0, 1fr) calc(var(--bottom-tray-height) + var(--bottom-tray-safe-area));
   }
 
   .play-status {
@@ -2240,7 +2247,7 @@ button:focus-visible {
   }
 
   .bottom-tray {
-    height: 106px;
+    height: calc(var(--bottom-tray-height) + var(--bottom-tray-safe-area));
   }
 
   .tray-label {
