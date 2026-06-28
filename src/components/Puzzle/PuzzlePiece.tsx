@@ -1,5 +1,5 @@
 import type { CSSProperties, PointerEvent } from "react";
-import { getRegionColor } from "../../data/regionColors";
+import { getRegionColor, type RegionColor } from "../../data/regionColors";
 import type { Prefecture } from "../../types/puzzle";
 import { viewBoxToString } from "../../utils/geometry";
 
@@ -7,11 +7,12 @@ type PuzzlePieceProps = {
   prefecture: Prefecture;
   disabled?: boolean;
   isWobbling?: boolean;
+  color?: RegionColor;
   onPointerDown: (event: PointerEvent<HTMLButtonElement>, prefecture: Prefecture) => void;
 };
 
-export function PuzzlePiece({ prefecture, disabled = false, isWobbling = false, onPointerDown }: PuzzlePieceProps) {
-  const color = getRegionColor(prefecture.regionId);
+export function PuzzlePiece({ prefecture, disabled = false, isWobbling = false, color, onPointerDown }: PuzzlePieceProps) {
+  const pieceColor = color ?? getRegionColor(prefecture.regionId);
   const pieceViewBox = {
     x: prefecture.bbox.x - 10,
     y: prefecture.bbox.y - 10,
@@ -25,10 +26,10 @@ export function PuzzlePiece({ prefecture, disabled = false, isWobbling = false, 
       className={`puzzle-piece${isWobbling ? " is-wobbling" : ""}`}
       style={
         {
-          "--region-main": color.main,
-          "--region-soft": color.soft,
-          "--region-ink": color.ink,
-          "--region-sparkle": color.sparkle
+          "--region-main": pieceColor.main,
+          "--region-soft": pieceColor.soft,
+          "--region-ink": pieceColor.ink,
+          "--region-sparkle": pieceColor.sparkle
         } as CSSProperties
       }
       disabled={disabled}

@@ -18,7 +18,7 @@ import { ProgressPanel } from "../Puzzle/ProgressPanel";
 import { PuzzlePiece } from "../Puzzle/PuzzlePiece";
 import { ResultModal } from "../Puzzle/ResultModal";
 import { TimeAttackPanel } from "../Puzzle/TimeAttackPanel";
-import { getRegionColor } from "../../data/regionColors";
+import { getRegionColor, neutralPuzzleColor } from "../../data/regionColors";
 import { prefectureById, prefectures } from "../../data/prefectures";
 import { regionById, regions } from "../../data/regions";
 import { useBestTime } from "../../hooks/useBestTime";
@@ -71,12 +71,25 @@ function getPuzzleGameMode(playMode: PuzzlePlayMode, regionId?: string): GameMod
     return regionId ? "prefecture-learn-region" : "prefecture-learn-national";
   }
 
+  if (playMode === "time-attack-color" && !regionId) {
+    return "prefecture-national-color";
+  }
+
   return regionId ? "prefecture-region" : "prefecture-national";
 }
 
 function getModeText(playMode: PuzzlePlayMode, regionId?: string) {
   const scope = regionId ? regionById.get(regionId)?.name ?? "地方" : "全国";
-  return playMode === "learn" ? `${scope} 覚えるモード` : `${scope} タイムアタック`;
+
+  if (playMode === "learn") {
+    return `${scope} 覚えるモード`;
+  }
+
+  if (playMode === "time-attack-color" && !regionId) {
+    return "全国 カラーモード";
+  }
+
+  return regionId ? `${scope} タイムアタック` : "全国 ハードモード";
 }
 
 function playTone(kind: "correct" | "wrong", soundOn: boolean) {
@@ -127,6 +140,8 @@ export function PrefecturePuzzleMode({
 }: PrefecturePuzzleModeProps) {
   const mode = getPuzzleGameMode(playMode, regionId);
   const isLearningMode = playMode === "learn";
+  const isColorTimeAttack = playMode === "time-attack-color" && !regionId;
+  const showRegionColors = playMode !== "time-attack" || Boolean(regionId);
   const scopePrefectures = useMemo(() => getScopePrefectures(regionId), [regionId]);
   const scopeIds = useMemo(() => new Set(scopePrefectures.map((prefecture) => prefecture.id)), [scopePrefectures]);
   const scopeIdList = useMemo(() => scopePrefectures.map((prefecture) => prefecture.id), [scopePrefectures]);
@@ -151,6 +166,10 @@ export function PrefecturePuzzleMode({
   const drag = useDragAndDrop();
   const viewport = useMapViewport(regionId);
   const puzzle = usePuzzleState(scopeIdList);
+  const getPuzzleColor = useCallback(
+    (prefecture: Prefecture) => (showRegionColors ? getRegionColor(prefecture.regionId) : neutralPuzzleColor),
+    [showRegionColors]
+  );
 
   useEffect(() => {
     puzzle.reset();
@@ -270,7 +289,7 @@ export function PrefecturePuzzleMode({
           id: Date.now(),
           x: shapeHit.clientPoint.x,
           y: shapeHit.clientPoint.y,
-          color: getRegionColor(target.regionId).sparkle
+          color: getPuzzleColor(target).sparkle
         });
         window.setTimeout(() => setCelebration(null), 720);
         playTone("correct", soundOn);
@@ -287,7 +306,7 @@ export function PrefecturePuzzleMode({
         playTone("wrong", soundOn);
       }
     },
-    [completePuzzle, drag, isLearningMode, phase, puzzle, restoreOkinawaViewport, scopeIdList.length, soundOn]
+    [completePuzzle, drag, getPuzzleColor, isLearningMode, phase, puzzle, restoreOkinawaViewport, scopeIdList.length, soundOn]
   );
 
   useEffect(() => {
@@ -348,10 +367,12 @@ export function PrefecturePuzzleMode({
       puzzle.setFeedback(
         isLearningMode
           ? `${prefecture.name}は${regionName}にあります。赤いガイドを見ながら置けます。`
-          : `${prefecture.name}は${regionName}にあります。ガイドなしで場所を思い出しましょう。`
+          : isColorTimeAttack
+            ? `${prefecture.name}は${regionName}です。色をヒントに場所を思い出しましょう。`
+            : `${prefecture.name}は${regionName}にあります。ガイドなしで場所を思い出しましょう。`
       );
     },
-    [drag, isLearningMode, phase, puzzle, regionId, viewport]
+    [drag, isColorTimeAttack, isLearningMode, phase, puzzle, regionId, viewport]
   );
 
   const handleHint = useCallback(() => {
@@ -366,9 +387,11 @@ export function PrefecturePuzzleMode({
     puzzle.setFeedback(
       isLearningMode
         ? `${target.name}は${regionName}。県庁所在地（けんちょうしょざいち）は${target.capital}です。赤いガイドを見て覚えよう。`
-        : `${target.name}は${regionName}。県庁所在地（けんちょうしょざいち）は${target.capital}です。地図を広く見て探してみよう。`
+        : isColorTimeAttack
+          ? `${target.name}は${regionName}。色をヒントに地図で探してみよう。`
+          : `${target.name}は${regionName}。県庁所在地（けんちょうしょざいち）は${target.capital}です。地図を広く見て探してみよう。`
     );
-  }, [activePrefecture, isLearningMode, puzzle, regionId, remainingPrefectures, viewport]);
+  }, [activePrefecture, isColorTimeAttack, isLearningMode, puzzle, regionId, remainingPrefectures, viewport]);
 
   const handleFit = useCallback(() => {
     if (regionId) {
@@ -392,6 +415,8 @@ export function PrefecturePuzzleMode({
     onStartRegion(nextRegion.id, playMode);
   }, [onStartRegion, playMode, regionId]);
 
+  const activeColor = activePrefecture ? getPuzzleColor(activePrefecture) : undefined;
+
   return (
     <main className="puzzle-screen">
       <HeaderBar onHome={onHome}>
@@ -410,11 +435,11 @@ export function PrefecturePuzzleMode({
         <div
           className={`drag-status-slot ${activePrefecture ? "is-active" : ""}`}
           style={
-            activePrefecture
+            activePrefecture && activeColor
               ? ({
-                  "--region-main": getRegionColor(activePrefecture.regionId).main,
-                  "--region-soft": getRegionColor(activePrefecture.regionId).soft,
-                  "--region-ink": getRegionColor(activePrefecture.regionId).ink
+                  "--region-main": activeColor.main,
+                  "--region-soft": activeColor.soft,
+                  "--region-ink": activeColor.ink
                 } as CSSProperties)
               : undefined
           }
@@ -442,6 +467,7 @@ export function PrefecturePuzzleMode({
           hintedId={isLearningMode ? hintedId : undefined}
           dropPreviewId={dropPreviewId}
           recentPlacedId={recentPlacedId}
+          getPrefectureColor={getPuzzleColor}
         />
         <MiniMap viewBox={viewport.viewBox} scopeIds={scopeIds} />
         <ZoomControls
@@ -454,7 +480,9 @@ export function PrefecturePuzzleMode({
           message={
             isLearningMode
               ? "覚えるモードでは赤いガイドを見ながら練習できます。"
-              : "タイムアタックでは赤いガイドなしでちょうせんします。"
+              : isColorTimeAttack
+                ? "カラーモードでは地方の色をヒントにちょうせんします。"
+                : "ハードモードでは色なし・赤いガイドなしでちょうせんします。"
           }
           targetName={activePrefecture?.name ?? remainingPrefectures[0]?.name}
           onHint={handleHint}
@@ -485,12 +513,13 @@ export function PrefecturePuzzleMode({
             prefecture={prefecture}
             disabled={phase !== "playing"}
             isWobbling={missWobbleId === prefecture.id}
+            color={getPuzzleColor(prefecture)}
             onPointerDown={handlePiecePointerDown}
           />
         ))}
       </BottomTray>
 
-      <DragLayer activeDrag={drag.activeDrag} prefecture={activePrefecture} />
+      <DragLayer activeDrag={drag.activeDrag} prefecture={activePrefecture} color={activeColor} />
 
       {result ? (
         <ResultModal

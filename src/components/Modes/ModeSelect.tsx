@@ -19,6 +19,7 @@ type ModeCardProps = {
 type ModeSelectProps = {
   onNationalLearn: () => void;
   onNationalTimeAttack: () => void;
+  onNationalColorTimeAttack: () => void;
   onRegionLearn: () => void;
   onRegionTimeAttack: () => void;
   onCapitalQuiz: () => void;
@@ -143,11 +144,13 @@ function RubyText({ label, kana }: { label: string; kana: string }) {
 export function ModeSelect({
   onNationalLearn,
   onNationalTimeAttack,
+  onNationalColorTimeAttack,
   onRegionLearn,
   onRegionTimeAttack,
   onCapitalQuiz
 }: ModeSelectProps) {
   const nationalBest = loadBestTime("prefecture-national");
+  const nationalColorBest = loadBestTime("prefecture-national-color");
   const learnBest = loadBestTime("prefecture-learn-national");
   const quizBest = loadBestTime("capital-quiz");
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -241,14 +244,26 @@ export function ModeSelect({
         <ModeCard
           className="mode-card primary-mode mode-red"
           emoji="⏱️"
-          label="タイムアタック"
+          label="ハードモード"
           title="全国47ピース"
-          description="赤いガイドなしでじぶんのベストにちょうせん"
-          meta={nationalBest ? `ベスト ${formatClock(nationalBest.bestTimeSeconds)}` : "まずはちょうせん"}
+          description="いろわけなしでじぶんのベストにちょうせん"
+          meta={nationalBest ? `ベスト ${formatClock(nationalBest.bestTimeSeconds)}` : "しょうごうあり"}
           isLaunchLocked={launchingMode !== null}
-          isLaunching={launchingMode === "national-time-attack"}
+          isLaunching={launchingMode === "national-hard-time-attack"}
           onLaunchAnimationEnd={finishLaunch}
-          onClick={() => startLaunch("national-time-attack", onNationalTimeAttack)}
+          onClick={() => startLaunch("national-hard-time-attack", onNationalTimeAttack)}
+        />
+        <ModeCard
+          className="mode-card mode-orange"
+          emoji="🎨"
+          label="カラーで練習"
+          title="全国カラーモード"
+          description="ちほうのいろをヒントに47ピースにちょうせん"
+          meta={nationalColorBest ? `カラーベスト ${formatClock(nationalColorBest.bestTimeSeconds)}` : "いろありでれんしゅう"}
+          isLaunchLocked={launchingMode !== null}
+          isLaunching={launchingMode === "national-color-time-attack"}
+          onLaunchAnimationEnd={finishLaunch}
+          onClick={() => startLaunch("national-color-time-attack", onNationalColorTimeAttack)}
         />
         <ModeCard
           className="mode-card mode-green"

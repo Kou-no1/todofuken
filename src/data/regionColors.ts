@@ -44,6 +44,13 @@ export const regionColors: Record<string, RegionColor> = {
   }
 };
 
+export const neutralPuzzleColor: RegionColor = {
+  main: "#c8bfa0",
+  soft: "#f5f0e8",
+  ink: "#4a3f28",
+  sparkle: "#ddd5b8"
+};
+
 export function getRegionColor(regionId: string): RegionColor {
   return (
     regionColors[regionId] ?? {

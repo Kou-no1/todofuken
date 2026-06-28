@@ -59,6 +59,7 @@ export function App() {
         <ModeSelect
           onNationalLearn={() => startNationalPuzzle("learn")}
           onNationalTimeAttack={() => startNationalPuzzle("time-attack")}
+          onNationalColorTimeAttack={() => startNationalPuzzle("time-attack-color")}
           onRegionLearn={() => openRegionPuzzleSelect("learn")}
           onRegionTimeAttack={() => openRegionPuzzleSelect("time-attack")}
           onCapitalQuiz={() => setScreen("region-quiz-select")}

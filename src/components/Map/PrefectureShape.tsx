@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { getRegionColor } from "../../data/regionColors";
+import { getRegionColor, type RegionColor } from "../../data/regionColors";
 import type { Prefecture } from "../../types/puzzle";
 
 type PrefectureShapeProps = {
@@ -10,6 +10,7 @@ type PrefectureShapeProps = {
   isHinted: boolean;
   isDropPreview: boolean;
   isRecent: boolean;
+  color?: RegionColor;
 };
 
 function shortName(name: string) {
@@ -31,9 +32,10 @@ export function PrefectureShape({
   isTarget,
   isHinted,
   isDropPreview,
-  isRecent
+  isRecent,
+  color
 }: PrefectureShapeProps) {
-  const color = getRegionColor(prefecture.regionId);
+  const shapeColor = color ?? getRegionColor(prefecture.regionId);
   const label = shortName(prefecture.name);
   const labelWidth = Math.max(28, Math.min(58, label.length * 12 + 14));
   const showLabel = isPlaced && shouldShowLabel(prefecture, isRecent);
@@ -54,10 +56,10 @@ export function PrefectureShape({
       className={classNames}
       style={
         {
-          "--region-main": color.main,
-          "--region-soft": color.soft,
-          "--region-ink": color.ink,
-          "--region-sparkle": color.sparkle
+          "--region-main": shapeColor.main,
+          "--region-soft": shapeColor.soft,
+          "--region-ink": shapeColor.ink,
+          "--region-sparkle": shapeColor.sparkle
         } as CSSProperties
       }
     >

@@ -57,4 +57,21 @@ describe("result modal title display", () => {
     expect(html).toContain("じぶんのベストこうしん！");
     expect(html).toContain("次の地方へ");
   });
+
+  it("hides title-related content for national color mode", () => {
+    const html = renderResult(
+      {
+        mode: "prefecture-national-color",
+        clearTimeSeconds: 96,
+        mistakes: 2,
+        isNewBest: true
+      },
+      47
+    );
+
+    expect(html).toContain("全国 カラーモード");
+    expect(html).not.toContain("time-title-badge");
+    expect(html).not.toContain("しょうごう");
+    expect(html).toContain("じぶんのベストこうしん！");
+  });
 });

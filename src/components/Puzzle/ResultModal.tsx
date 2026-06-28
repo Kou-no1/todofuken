@@ -15,7 +15,11 @@ type ResultModalProps = {
 
 function getModeLabel(mode: GameMode, regionId?: string): string {
   if (mode === "prefecture-national") {
-    return "全国タイムアタック";
+    return "全国 ハードモード";
+  }
+
+  if (mode === "prefecture-national-color") {
+    return "全国 カラーモード";
   }
 
   if (mode === "prefecture-learn-national") {

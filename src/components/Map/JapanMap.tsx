@@ -1,6 +1,7 @@
 import type { RefObject } from "react";
 import { prefectures } from "../../data/prefectures";
-import type { ViewBox } from "../../types/puzzle";
+import type { RegionColor } from "../../data/regionColors";
+import type { Prefecture, ViewBox } from "../../types/puzzle";
 import { viewBoxToString } from "../../utils/geometry";
 import { PrefectureShape } from "./PrefectureShape";
 
@@ -13,6 +14,7 @@ type JapanMapProps = {
   hintedId?: string;
   dropPreviewId?: string;
   recentPlacedId?: string;
+  getPrefectureColor?: (prefecture: Prefecture) => RegionColor;
 };
 
 export function JapanMap({
@@ -23,7 +25,8 @@ export function JapanMap({
   targetId,
   hintedId,
   dropPreviewId,
-  recentPlacedId
+  recentPlacedId,
+  getPrefectureColor
 }: JapanMapProps) {
   return (
     <svg
@@ -55,6 +58,7 @@ export function JapanMap({
             isHinted={hintedId === prefecture.id}
             isDropPreview={dropPreviewId === prefecture.id}
             isRecent={recentPlacedId === prefecture.id}
+            color={getPrefectureColor?.(prefecture)}
           />
         ))}
       </g>
