@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🗾 都道府県ランキング</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sky: #0ea5e9;
+    --sky-light: #e0f2fe;
+    --gold: #f59e0b;
+    --gold-light: #fef3c7;
+    --silver: #94a3b8;
+    --bronze: #b45309;
+    --bg: #f0f9ff;
+    --surface: #fff;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --text-sub: #64748b;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --radius-pill: 999px;
+  }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 4rem;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+    padding: 2rem 1.5rem 2.5rem;
+    text-align: center;
+  }
+  .hero-title {
+    font-size: clamp(22px, 6vw, 34px);
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  }
+  .hero-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+    margin-top: 6px;
+  }
+  .hero-updated {
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 4px;
+  }
+
+  /* ── Container ── */
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 0;
+  }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .tab-btn {
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    color: var(--text-sub);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { border-color: var(--sky); color: var(--sky); }
+  .tab-btn.active {
+    background: var(--sky);
+    color: #fff;
+    border-color: var(--sky);
+  }
+
+  /* ── Table ── */
+  .ranking-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  .ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .ranking-table th {
+    background: #f8fafc;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-sub);
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .ranking-table td {
+    padding: 11px 14px;
+    font-size: 14px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+  }
+  .ranking-table tr:last-child td { border-bottom: none; }
+  .ranking-table tr:hover td { background: #f8fafc; }
+
+  /* ── Rank badge ── */
+  .rank {
+    font-weight: 900;
+    font-size: 15px;
+    width: 32px;
+    text-align: center;
+    display: inline-block;
+  }
+  .rank-1 { color: var(--gold); }
+  .rank-2 { color: var(--silver); }
+  .rank-3 { color: var(--bronze); }
+  .rank-other { color: var(--text-sub); font-size: 13px; }
+
+  .medal { font-size: 20px; }
+
+  /* ── Name / grade ── */
+  .name { font-weight: 700; }
+  .grade {
+    font-size: 11px;
+    color: var(--text-sub);
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    display: inline-block;
+    margin-left: 4px;
+  }
+
+  /* ── Time ── */
+  .time {
+    font-weight: 700;
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+    color: var(--sky);
+  }
+
+  /* ── Top 3 row highlight ── */
+  .row-1 td { background: #fffbeb; }
+  .row-2 td { background: #f8fafc; }
+  .row-3 td { background: #fff7ed; }
+
+  /* ── Loading / empty ── */
+  .status-box {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-sub);
+    font-size: 14px;
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid #e2e8f0;
+    border-top-color: var(--sky);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 0.5px solid #e0e0e0;
+    padding: 1.5rem 0 1rem;
+    text-align: center;
+    margin-top: 2rem;
+  }
+  footer p:first-child { font-size: 15px; color: #888; margin: 0 0 4px; }
+  footer p:last-child  { font-size: 12px; color: #aaa; margin: 0; }
+
+  @media (max-width: 480px) {
+    .ranking-table th, .ranking-table td { padding: 9px 10px; }
+    .grade { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-title">🗾 都道府県ランキング</div>
+  <div class="hero-sub">中央小学校　タイムアタックランキング</div>
+  <div class="hero-updated" id="updated-at">読み込み中...</div>
+</div>
+
+<div class="container">
+
+  <!-- タブ -->
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-grade="総合" onclick="switchTab(this)">🥇 総合</button>
+    <button class="tab-btn" data-grade="3" onclick="switchTab(this)">3年生</button>
+    <button class="tab-btn" data-grade="4" onclick="switchTab(this)">4年生</button>
+    <button class="tab-btn" data-grade="5" onclick="switchTab(this)">5年生</button>
+    <button class="tab-btn" data-grade="6" onclick="switchTab(this)">6年生</button>
+  </div>
+
+  <!-- ランキング表示エリア -->
+  <div class="ranking-card" id="ranking-card">
+    <div class="status-box">
+      <div class="spinner"></div>
+      データを読み込んでいます...
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>「あったらいいのに」を、作ってる。</p>
+  <p>© 2026 野村晃一 All rights reserved.</p>
+</footer>
+
+<script>
+  // ★ここにGASウェブアプリのURLを入れる
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbwyPExdIF-n2pvDPYdTH3Ns-IX4v65jJzDgb5K5y1NEtBkexA_w94BBedHTrujXlCOG9Q/exec';
+
+  let allData = null;
+  let currentGrade = '総合';
+
+  // データ取得
+  async function fetchRanking() {
+    try {
+      const res = await fetch(GAS_URL);
+      const json = await res.json();
+      allData = json;
+      document.getElementById('updated-at').textContent =
+        '最終更新：' + new Date(json.updatedAt).toLocaleString('ja-JP');
+      renderTable(currentGrade);
+    } catch (e) {
+      document.getElementById('ranking-card').innerHTML =
+        '<div class="status-box">⚠️ データの読み込みに失敗しました。<br>しばらくしてから再読み込みしてください。</div>';
+    }
+  }
+
+  // タブ切り替え
+  function switchTab(btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentGrade = btn.dataset.grade;
+    renderTable(currentGrade);
+  }
+
+  // テーブル描画
+  function renderTable(grade) {
+    if (!allData) return;
+
+    const rows = grade === '総合'
+      ? allData.overall
+      : allData.byGrade[grade] || [];
+
+    const card = document.getElementById('ranking-card');
+
+    if (rows.length === 0) {
+      card.innerHTML = '<div class="status-box">まだ記録がありません。挑戦してみよう！</div>';
+      return;
+    }
+
+    const medals = ['🥇', '🥈', '🥉'];
+
+    const trs = rows.map((r, i) => {
+      const rank = i + 1;
+      const rankClass = rank <= 3 ? `rank-${rank}` : 'rank-other';
+      const rowClass  = rank <= 3 ? `row-${rank}` : '';
+      const medal     = rank <= 3 ? `<span class="medal">${medals[i]}</span>` : '';
+      return `
+        <tr class="${rowClass}">
+          <td><span class="rank ${rankClass}">${medal || rank}</span></td>
+          <td><span class="name">${r.name}</span><span class="grade">${r.grade}</span></td>
+          <td><span class="time">${r.time}</span></td>
+        </tr>`;
+    }).join('');
+
+    card.innerHTML = `
+      <table class="ranking-table">
+        <thead>
+          <tr>
+            <th style="width:48px;">順位</th>
+            <th>名前</th>
+            <th>タイム</th>
+          </tr>
+        </thead>
+        <tbody>${trs}</tbody>
+      </table>`;
+  }
+
+  fetchRanking();
+</script>
+
+</body>
+</html>
