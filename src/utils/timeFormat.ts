@@ -1,5 +1,5 @@
 export function formatClock(seconds: number): string {
-  const safeSeconds = Math.max(0, seconds);
+  const safeSeconds = Number.isFinite(seconds) ? Math.max(0, seconds) : 0;
   const minutes = Math.floor(safeSeconds / 60);
   const remainingSeconds = Math.floor(safeSeconds % 60);
 
@@ -7,9 +7,9 @@ export function formatClock(seconds: number): string {
 }
 
 export function formatClearTime(seconds: number): string {
-  const safeSeconds = Math.max(0, seconds);
-  const minutes = Math.floor(safeSeconds / 60);
-  const remainingSeconds = Math.round((safeSeconds % 60) * 10) / 10;
+  const tenths = Math.round((Number.isFinite(seconds) ? Math.max(0, seconds) : 0) * 10);
+  const minutes = Math.floor(tenths / 600);
+  const remainingSeconds = (tenths % 600) / 10;
 
   if (minutes === 0) {
     return `${remainingSeconds.toFixed(remainingSeconds % 1 === 0 ? 0 : 1)}秒`;

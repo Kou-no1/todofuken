@@ -1,89 +1,51 @@
-const CACHE_NAME = "todofuken-pwa-v1";
-
-const getScopeUrl = (path) => new URL(path, self.registration.scope).toString();
-
-const CORE_ASSETS = [
-  getScopeUrl("./"),
-  getScopeUrl("./index.html"),
-  getScopeUrl("./docs/index.html"),
-  getScopeUrl("./docs/manifest.webmanifest"),
-  getScopeUrl("./docs/icons/icon-192.png"),
-  getScopeUrl("./docs/icons/icon-512.png"),
-  getScopeUrl("./docs/icons/maskable-192.png"),
-  getScopeUrl("./docs/icons/maskable-512.png"),
-  getScopeUrl("./docs/icons/apple-touch-icon.png")
-];
+// Replaced with the current build's files by scripts/build-pwa.mjs.
+const CACHE_NAME = "todofuken-pwa-development";
+const APP_ENTRY = "./index.html";
+const PRECACHE_ASSETS = [];
+const CACHE_PREFIX = "todofuken-pwa-";
+const getScopeUrl = (asset) => new URL(asset, self.registration.scope).href;
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) =>
-        Promise.allSettled(CORE_ASSETS.map((url) => cache.add(new Request(url, { cache: "reload" }))))
-      )
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    // Installation must finish caching JS/CSS before this worker can take over.
+    await cache.addAll(PRECACHE_ASSETS.map(asset => new Request(getScopeUrl(asset), { cache: "reload" })));
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches
-      .keys()
-      .then((cacheNames) =>
-        Promise.all(cacheNames.filter((cacheName) => cacheName !== CACHE_NAME).map((cacheName) => caches.delete(cacheName)))
-      )
-      .then(() => self.clients.claim())
-  );
+  event.waitUntil((async () => {
+    const names = await caches.keys();
+    await Promise.all(names.filter(name => name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME).map(name => caches.delete(name)));
+    await self.clients.claim();
+  })());
 });
-
-async function networkFirst(request) {
-  const cache = await caches.open(CACHE_NAME);
-
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch {
-    return (
-      (await cache.match(request)) ||
-      (await cache.match(getScopeUrl("./docs/index.html"))) ||
-      (await cache.match(getScopeUrl("./index.html")))
-    );
-  }
-}
-
-async function cacheFirst(request) {
-  const cache = await caches.open(CACHE_NAME);
-  const cachedResponse = await cache.match(request);
-
-  if (cachedResponse) {
-    return cachedResponse;
-  }
-
-  const response = await fetch(request);
-  if (response.ok) {
-    cache.put(request, response.clone());
-  }
-  return response;
-}
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  if (request.method !== "GET") {
-    return;
-  }
+  const url = new URL(request.url);
+  if (request.method !== "GET" || url.origin !== self.location.origin || !url.href.startsWith(self.registration.scope)) return;
 
-  const requestUrl = new URL(request.url);
-  if (requestUrl.origin !== self.location.origin || !requestUrl.href.startsWith(self.registration.scope)) {
-    return;
-  }
-
-  if (request.mode === "navigate" || request.destination === "document") {
-    event.respondWith(networkFirst(request));
-    return;
-  }
-
-  event.respondWith(cacheFirst(request));
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const isNavigation = request.mode === "navigate";
+    if (!isNavigation) {
+      const cached = await cache.match(request);
+      if (cached) return cached;
+    }
+    try {
+      const response = await fetch(request);
+      if (response.ok) event.waitUntil(cache.put(request, response.clone()));
+      return response;
+    } catch (error) {
+      const cached = await cache.match(request, { ignoreSearch: isNavigation });
+      if (cached) return cached;
+      if (isNavigation) {
+        const shell = await cache.match(getScopeUrl(APP_ENTRY));
+        if (shell) return shell;
+      }
+      throw error;
+    }
+  })());
 });

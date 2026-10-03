@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getBestTimeKey, loadBestTime, saveBestTimeIfImproved } from "../hooks/useBestTime";
 
 class LocalStorageMock {
@@ -28,6 +28,7 @@ Object.defineProperty(globalThis, "localStorage", {
 
 describe("best time storage", () => {
   beforeEach(() => {
+    vi.restoreAllMocks();
     localStorage.clear();
   });
 
@@ -59,5 +60,23 @@ describe("best time storage", () => {
     expect(saveBestTimeIfImproved("prefecture-national", undefined, 120, 0).isNewBest).toBe(false);
     expect(saveBestTimeIfImproved("prefecture-national", undefined, 80, 4).isNewBest).toBe(true);
     expect(loadBestTime("prefecture-national")?.bestTimeSeconds).toBe(80);
+  });
+
+  it("ignores malformed or mismatched records without losing valid legacy records", () => {
+    for (const raw of ["{", "null", "{}", '{"bestTimeSeconds":"fast"}']) {
+      localStorage.setItem(getBestTimeKey("prefecture-national"), raw);
+      expect(loadBestTime("prefecture-national")).toBeNull();
+    }
+    const valid = saveBestTimeIfImproved("prefecture-national", undefined, 108, 2).record;
+    expect(loadBestTime("prefecture-national")).toEqual(valid);
+    localStorage.setItem(getBestTimeKey("prefecture-national-color"), JSON.stringify(valid));
+    expect(loadBestTime("prefecture-national-color")).toBeNull();
+  });
+
+  it("can finish a game even when storage access is denied or full", () => {
+    vi.spyOn(localStorage, "getItem").mockImplementation(() => { throw new Error("SecurityError"); });
+    vi.spyOn(localStorage, "setItem").mockImplementation(() => { throw new Error("QuotaExceededError"); });
+    expect(loadBestTime("prefecture-national")).toBeNull();
+    expect(saveBestTimeIfImproved("prefecture-national", undefined, 82, 1).record.bestTimeSeconds).toBe(82);
   });
 });

@@ -279,11 +279,12 @@
       const rankClass = rank <= 3 ? `rank-${rank}` : 'rank-other';
       const rowClass  = rank <= 3 ? `row-${rank}` : '';
       const medal     = rank <= 3 ? `<span class="medal">${medals[i]}</span>` : '';
+      const escapeText = (value) => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[char]));
       return `
         <tr class="${rowClass}">
           <td><span class="rank ${rankClass}">${medal || rank}</span></td>
-          <td><span class="name">${r.name}</span><span class="grade">${r.grade}</span></td>
-          <td><span class="time">${r.time}</span></td>
+          <td><span class="name">${escapeText(r.name)}</span><span class="grade">${escapeText(r.grade)}</span></td>
+          <td><span class="time">${escapeText(r.time)}</span></td>
         </tr>`;
     }).join('');
 

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { ReactNode, RefObject } from "react";
 import { loadBestTime } from "../../hooks/useBestTime";
 import { formatClock } from "../../utils/timeFormat";
+import { useDialogFocus } from "../../hooks/useDialogFocus";
 
 type ModeCardProps = {
   className: string;
@@ -34,9 +35,12 @@ type OnboardingOverlayProps = {
 };
 
 function OnboardingOverlay({ onClose, startButtonRef }: OnboardingOverlayProps) {
+  const dialogRef = useRef<HTMLElement | null>(null);
+  useDialogFocus(dialogRef);
   return (
     <div className="onboarding-backdrop" role="presentation">
       <section
+        ref={dialogRef}
         className="onboarding-card"
         role="dialog"
         aria-modal="true"

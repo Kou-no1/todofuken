@@ -5,3 +5,5 @@ pages-preview.*.log
 prefectures.source.geojson
 .DS_Store
 .codex-remote-attachments/
+.codex/media-tools/
+artifacts/

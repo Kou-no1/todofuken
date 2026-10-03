@@ -11,8 +11,8 @@
       name="description"
       content="小学校4年生向けに都道府県の名前・形・位置を楽しく覚えるパズル型Webアプリ"
     />
-    <link rel="manifest" href="./assets/manifest-avweM7Ub.webmanifest" />
-    <link rel="apple-touch-icon" href="./assets/apple-touch-icon-B4WtbfUj.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -20,13 +20,13 @@
       rel="stylesheet"
     />
     <title>パズルでおぼえる「都道府県」</title>
-    <script type="module" crossorigin src="./assets/index-Cau3q5Cw.js"></script>
+    <script type="module" crossorigin src="./assets/index-CYZW2Z7m.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-DmyrvFWs.css">
   </head>
   <body>
     <div id="root"></div>
     <script>
-      if (location.hostname === "kou-no1.github.io" && !location.pathname.startsWith("/todofuken/docs/")) {
+      if (location.pathname === "/todofuken/" || location.pathname === "/todofuken/index.html") {
         location.replace(`/todofuken/docs/index.html${location.search || "?v=latest"}`);
       }
     </script>

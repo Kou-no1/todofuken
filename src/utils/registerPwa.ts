@@ -1,5 +1,5 @@
 function getPwaScopePath() {
-  if (window.location.hostname === "kou-no1.github.io" && window.location.pathname.startsWith("/todofuken/")) {
+  if (window.location.pathname.startsWith("/todofuken/")) {
     return "/todofuken/";
   }
 
@@ -7,18 +7,20 @@ function getPwaScopePath() {
 }
 
 export function registerPwa() {
-  if (!("serviceWorker" in navigator)) {
+  if (!import.meta.env.PROD || !("serviceWorker" in navigator)) {
     return;
   }
 
-  window.addEventListener("load", () => {
+  const register = () => {
     const scope = getPwaScopePath();
 
     navigator.serviceWorker
-      .register(`${scope}sw.js`, { scope })
+      .register(`${scope}sw.js`, { scope, updateViaCache: "none" })
       .then((registration) => {
         registration.update().catch(() => undefined);
       })
       .catch(() => undefined);
-  });
+  };
+  if (document.readyState === "complete") register();
+  else window.addEventListener("load", register, { once: true });
 }

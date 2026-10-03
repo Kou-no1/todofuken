@@ -3,6 +3,8 @@ import type { GameMode, PuzzleResult } from "../../types/puzzle";
 import { formatClearTime } from "../../utils/timeFormat";
 import { getNextTitleGap, getTimeTitle } from "../../utils/timeTitle";
 import { TimeTitleBadge } from "./TimeTitleBadge";
+import { useRef } from "react";
+import { useDialogFocus } from "../../hooks/useDialogFocus";
 
 type ResultModalProps = {
   result: PuzzleResult;
@@ -56,6 +58,8 @@ function getResultMessage(result: PuzzleResult, showTimeTitle: boolean, title: R
 }
 
 export function ResultModal({ result, totalCount, onRetry, onNextRegion, onNational: _onNational, onHome }: ResultModalProps) {
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  useDialogFocus(dialogRef);
   const title = getTimeTitle(result.clearTimeSeconds);
   const nextGap = getNextTitleGap(result.clearTimeSeconds);
   const showTimeTitle = result.mode === "prefecture-national";
@@ -71,7 +75,7 @@ export function ResultModal({ result, totalCount, onRetry, onNextRegion, onNatio
     .join(" ");
 
   return (
-    <div className="result-backdrop" role="dialog" aria-modal="true" aria-labelledby="result-title">
+    <div ref={dialogRef} className="result-backdrop" role="dialog" aria-modal="true" aria-labelledby="result-title">
       <section className={showTimeTitle ? "result-card has-title" : "result-card no-title"}>
         <div className="result-heading">
           <p className="result-mode">{getModeLabel(result.mode, result.regionId)}</p>

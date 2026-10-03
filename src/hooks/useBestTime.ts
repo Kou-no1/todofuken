@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { BestTimeRecord, GameMode } from "../types/puzzle";
+import { readStoredValue, writeStoredValue } from "../utils/storage";
 
 const STORAGE_PREFIX = "pref-puzzle:best";
 
@@ -16,17 +17,20 @@ export function getBestTimeKey(mode: GameMode, regionId?: string): string {
 }
 
 export function loadBestTime(mode: GameMode, regionId?: string): BestTimeRecord | null {
-  if (typeof localStorage === "undefined") {
-    return null;
-  }
-
-  const rawRecord = localStorage.getItem(getBestTimeKey(mode, regionId));
+  const rawRecord = readStoredValue(getBestTimeKey(mode, regionId));
   if (!rawRecord) {
     return null;
   }
 
   try {
-    return JSON.parse(rawRecord) as BestTimeRecord;
+    const record = JSON.parse(rawRecord) as BestTimeRecord | null;
+    if (!record || record.mode !== mode || record.regionId !== regionId ||
+        !Number.isFinite(record.bestTimeSeconds) || record.bestTimeSeconds < 0 ||
+        !Number.isInteger(record.bestMistakes) || record.bestMistakes < 0 ||
+        typeof record.achievedAt !== "string") {
+      return null;
+    }
+    return record;
   } catch {
     return null;
   }
@@ -54,8 +58,8 @@ export function saveBestTimeIfImproved(
       }
     : current;
 
-  if (isNewBest && typeof localStorage !== "undefined") {
-    localStorage.setItem(getBestTimeKey(mode, regionId), JSON.stringify(record));
+  if (isNewBest) {
+    writeStoredValue(getBestTimeKey(mode, regionId), JSON.stringify(record));
   }
 
   return { record, isNewBest };

@@ -30,6 +30,7 @@ import type { GameMode, Prefecture, PuzzlePlayMode, PuzzleResult, ViewBox } from
 import { fitToOkinawaMainIsland } from "../../utils/mapViewport";
 import { hitTestPrefectureShape } from "../../utils/shapeHitTest";
 import { shuffle } from "../../utils/shuffle";
+import { readStoredValue, writeStoredValue } from "../../utils/storage";
 
 type PrefecturePuzzleModeProps = {
   playMode: PuzzlePlayMode;
@@ -124,11 +125,7 @@ function playTone(kind: "correct" | "wrong", soundOn: boolean) {
 }
 
 function getStoredSoundSetting() {
-  if (typeof localStorage === "undefined") {
-    return false;
-  }
-
-  return localStorage.getItem(SOUND_STORAGE_KEY) === "on";
+  return readStoredValue(SOUND_STORAGE_KEY) === "on";
 }
 
 export function PrefecturePuzzleMode({
@@ -193,17 +190,15 @@ export function PrefecturePuzzleMode({
       viewport.fitToJapan();
     }
 
+    let remaining = 3;
     const intervalId = window.setInterval(() => {
-      setCountdown((current) => {
-        if (current <= 1) {
-          window.clearInterval(intervalId);
-          setPhase("playing");
-          timer.start();
-          return 0;
-        }
-
-        return current - 1;
-      });
+      remaining -= 1;
+      setCountdown(remaining);
+      if (remaining === 0) {
+        window.clearInterval(intervalId);
+        setPhase("playing");
+        timer.start();
+      }
     }, 850);
 
     return () => window.clearInterval(intervalId);
@@ -221,7 +216,7 @@ export function PrefecturePuzzleMode({
 
   const updateSound = useCallback((nextValue: boolean) => {
     setSoundOn(nextValue);
-    localStorage.setItem(SOUND_STORAGE_KEY, nextValue ? "on" : "off");
+    writeStoredValue(SOUND_STORAGE_KEY, nextValue ? "on" : "off");
   }, []);
 
   const completePuzzle = useCallback(
@@ -315,30 +310,41 @@ export function PrefecturePuzzleMode({
     }
 
     const handlePointerMove = (event: PointerEvent) => {
+      if (event.pointerId !== drag.activeDrag?.pointerId) return;
       event.preventDefault();
       drag.moveDrag(event.clientX, event.clientY);
       updateDropPreview(event.clientX, event.clientY);
     };
 
     const handlePointerUp = (event: PointerEvent) => {
+      if (event.pointerId !== drag.activeDrag?.pointerId) return;
       event.preventDefault();
       finishDrop(event.clientX, event.clientY);
     };
 
+    const handlePointerCancel = (event: PointerEvent) => {
+      if (event.pointerId !== drag.activeDrag?.pointerId) return;
+      drag.endDrag();
+      setTargetId(undefined);
+      setDropPreviewId(undefined);
+      restoreOkinawaViewport();
+      puzzle.setFeedback("ピースをもどしました。もう一回やってみよう。");
+    };
+
     window.addEventListener("pointermove", handlePointerMove, { passive: false });
     window.addEventListener("pointerup", handlePointerUp, { passive: false });
-    window.addEventListener("pointercancel", handlePointerUp, { passive: false });
+    window.addEventListener("pointercancel", handlePointerCancel);
 
     return () => {
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
-      window.removeEventListener("pointercancel", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerCancel);
     };
   }, [drag.activeDrag, drag.moveDrag, finishDrop, updateDropPreview]);
 
   const handlePiecePointerDown = useCallback(
     (event: ReactPointerEvent<HTMLButtonElement>, prefecture: Prefecture) => {
-      if (phase !== "playing") {
+      if (phase !== "playing" || drag.activeDrag || !event.isPrimary || event.button !== 0) {
         return;
       }
 
@@ -349,7 +355,7 @@ export function PrefecturePuzzleMode({
         // Pointer capture is a convenience only; window-level listeners still handle the drag.
       }
 
-      drag.startDrag(prefecture.id, event.clientX, event.clientY, event.pointerType || "mouse");
+      drag.startDrag(prefecture.id, event.clientX, event.clientY, event.pointerType || "mouse", event.pointerId);
       setTargetId(isLearningMode ? prefecture.id : undefined);
       setHintedId(undefined);
       setDropPreviewId(undefined);

@@ -35,19 +35,41 @@ npm run generate:prefectures
 
 ## 実装内容
 
-- 全国タイムアタック: 赤いガイドなしで47都道府県ピースに挑戦
+- 全国ハードモード: 地方色・赤いガイドなしで47ピースに挑戦。既存の全国ベスト記録と称号に対応
+- 全国カラーモード: 地方色をヒントに47ピースへ挑戦。ベスト記録はハードと別に保存、称号なし
 - 全国 覚えるモード: 赤いガイドを見ながら形と場所を練習
 - 地方別タイムアタック: 6地方ごとにガイドなしで挑戦
 - 地方別 覚えるモード: 6地方ごとに赤いガイドつきで練習
 - 県庁所在地モード: 県名から市名、市名から県名を選ぶ4択クイズ
 - 県名と所在地名が違う県だけを練習する6択とっくん
 - タイムアタック、カウントダウン、ミス回数、自己ベスト保存
-- クリア時の称号、称号コメント、次の称号までの秒数表示
+- 全国ハードモードのクリア時のみ称号・次の称号までの秒数表示
 - `100dvh` レイアウト、ページ全体の縦スクロール防止
 - SVG `viewBox` による全国表示・地方表示・都道府県フォーカス
 - ピース選択時の対象地方への自動フォーカス
 - 下部ピーストレイの横スクロール
 - localStorage によるモード別・地方別ベストタイム保存
+- 初回のみの遊び方、音ON/OFF、主要陸地を基準にした形ベースの吸着
+- PWA・ホーム画面追加・初回ロード後のオフライン起動
+
+## 公開とオフライン対応
+
+公開入口は https://kou-no1.github.io/todofuken/ です。GitHub Pagesの独自ドメイン設定で転送されても、`/todofuken/` から `docs/index.html` を開けます。
+
+`build` / `build:pages` は現在のHTML・JS・CSS・アイコンからキャッシュのバージョンと事前保存リストを生成します。Pagesではルートの `sw.js` を登録し、`/todofuken/` をスコープにします。manifestは `docs/manifest.webmanifest`、アイコンは `docs/icons/` を参照します。新バージョンの全ファイルの保存が成功してから旧キャッシュを削除し、プレイ中の強制リロードはしません。開発サーバーではService Workerを登録しません。
+
+## ブラウザ検証と紹介動画
+
+- 全体監査: `AUDIT-2026-10-03.md`
+- 実描画SVGのドラッグ回帰: `node scripts/audit-browser.mjs`
+- モード・クイズ・保存不能環境・キーボード: `node scripts/audit-ui.mjs`
+- Pagesと同じサブパスでのオフライン検証: `node scripts/audit-pwa.mjs`（先に `npm run build:pages`）
+- 公開版確認: `node --use-system-ca scripts/audit-public.mjs`
+- Shortsの構成・投稿文: `SHORTS-PLAN.md`
+
+ブラウザ検証・録画にはPlaywrightとChromiumを使用します。通常は別途Playwrightをインストールし、必要なら `BROWSER_NODE_MODULES` / `CHROME_PATH` で実行環境を指定してください。ドラッグ検証と録画は `npm run dev -- --port 5174` に対して実行します。結果・スクリーンショット・動画は `artifacts/` に保存し、Gitには含めません。
+
+動画は `node scripts/record-short.mjs` で実際に操作を録画し、Pillow・imageio-ffmpegを用意したPythonで `scripts/edit-short.py` を実行して編集します。日本語フォントは `VIDEO_FONT`、FFmpegは `FFMPEG_PATH` で指定できます。
 
 ## 地図データ
 
@@ -82,4 +104,6 @@ npm run generate:prefectures
 
 - TODO: 県庁所在地ラベルを県に置くフェーズ2の完成
 - TODO: 県庁所在地付近にピンを置くフェーズ3の完成
-- TODO: 音声読み上げや効果音などの学習補助
+- TODO: 県名の読み上げ、キーボードだけでのピース配置
+- TODO: 地図の再生成時にdragBbox・琵琶湖の個別調整を保持する仕組み
+- TODO: iOS実機のセーフエリア・学校のChromebook実機の操作確認

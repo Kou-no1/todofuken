@@ -162,17 +162,15 @@ export function CapitalQuizMode({ regionId, variant = "standard", onHome, onStar
       viewport.fitToJapan();
     }
 
+    let remaining = 3;
     const intervalId = window.setInterval(() => {
-      setCountdown((current) => {
-        if (current <= 1) {
-          window.clearInterval(intervalId);
-          setPhase("playing");
-          timer.start();
-          return 0;
-        }
-
-        return current - 1;
-      });
+      remaining -= 1;
+      setCountdown(remaining);
+      if (remaining === 0) {
+        window.clearInterval(intervalId);
+        setPhase("playing");
+        timer.start();
+      }
     }, 850);
 
     return () => {
