@@ -39,7 +39,7 @@
 県庁所在地クイズも遊べます。
 
 無料・登録なし。スマホ、タブレット、PCのブラウザで遊べます。
-https://kou-no1.github.io/todofuken/
+https://manabitane.jp/todofuken
 
 パズルでおぼえる「都道府県」
 #都道府県 #地理 #学習ゲーム #日本地図 #Shorts
