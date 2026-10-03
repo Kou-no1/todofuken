@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import assert from "node:assert/strict";
-import { openBrowser, dismissOnboarding } from "./browser-helpers.mjs";
+import path from "node:path";
+import { getPlaywright, openBrowser, dismissOnboarding } from "./browser-helpers.mjs";
 
 const urls = ["https://kou-no1.github.io/todofuken/", "https://manabitane.jp/todofuken/"];
 const results = [];
@@ -13,10 +14,18 @@ for (const url of urls) {
       assets: html.match(/assets\/index[^" ]+/g) });
   } catch (error) { results.push({ requested: url, error: error.message }); }
 }
-const browser = await openBrowser();
+const verify = process.argv.includes("--verify");
+const browser = verify ? null : await openBrowser();
 try {
   for (const url of urls) {
-    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    // Browser.newContext is incognito, where Chrome intentionally disallows installation.
+    // Verify installability in our own ordinary profile, never the user's Chrome profile.
+    const context = verify
+      ? await getPlaywright().chromium.launchPersistentContext(path.resolve(`artifacts/qa/pwa-profile-${new URL(url).hostname}-${Date.now()}`), {
+          headless: true, viewport: { width: 390, height: 844 },
+          executablePath: process.env.CHROME_PATH ?? (process.platform === "win32" ? "C:/Program Files/Google/Chrome/Application/chrome.exe" : undefined)
+        })
+      : await browser.newContext({ viewport: { width: 390, height: 844 } });
     const page = await context.newPage();
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
@@ -54,6 +63,6 @@ try {
     }
     await context.close();
   }
-} finally { await browser.close(); }
+} finally { await browser?.close(); }
 await fs.writeFile(`artifacts/qa/public-results${process.argv.includes("--verify") ? "-verified" : ""}.json`, JSON.stringify(results, null, 2));
 console.log(JSON.stringify(results, null, 2));

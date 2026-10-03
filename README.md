@@ -64,7 +64,7 @@ npm run generate:prefectures
 - 実描画SVGのドラッグ回帰: `node scripts/audit-browser.mjs`
 - モード・クイズ・保存不能環境・キーボード: `node scripts/audit-ui.mjs`
 - Pagesと同じサブパスでのオフライン検証: `node scripts/audit-pwa.mjs`（先に `npm run build:pages`）
-- 公開版確認: `node --use-system-ca scripts/audit-public.mjs`
+- 公開版の起動・インストール条件・オフライン確認: `node --use-system-ca scripts/audit-public.mjs --verify`
 - Shortsの構成・投稿文: `SHORTS-PLAN.md`
 
 ブラウザ検証・録画にはPlaywrightとChromiumを使用します。通常は別途Playwrightをインストールし、必要なら `BROWSER_NODE_MODULES` / `CHROME_PATH` で実行環境を指定してください。ドラッグ検証と録画は `npm run dev -- --port 5174` に対して実行します。結果・スクリーンショット・動画は `artifacts/` に保存し、Gitには含めません。
