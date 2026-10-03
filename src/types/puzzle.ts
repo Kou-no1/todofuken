@@ -47,6 +47,8 @@ export type GameMode =
   | "prefecture-region"
   | "prefecture-learn-national"
   | "prefecture-learn-region"
+  | "prefecture-daily"
+  | "prefecture-review"
   | "capital-quiz"
   | "capital-quiz-special"
   | "capital-label"
@@ -54,9 +56,14 @@ export type GameMode =
 
 export type PuzzlePlayMode = "learn" | "time-attack" | "time-attack-color";
 
+export type PuzzleChallenge =
+  | { kind: "daily"; dateKey: string; prefectureIds: string[] }
+  | { kind: "review"; prefectureIds: string[] };
+
 export type BestTimeRecord = {
   mode: GameMode;
   regionId?: string;
+  challengeId?: string;
   bestTimeSeconds: number;
   bestMistakes: number;
   achievedAt: string;
@@ -68,4 +75,6 @@ export type PuzzleResult = {
   clearTimeSeconds: number;
   mistakes: number;
   isNewBest: boolean;
+  dateKey?: string;
+  prefectureIds?: string[];
 };

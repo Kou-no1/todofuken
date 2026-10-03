@@ -1,12 +1,12 @@
 // Replaced with the current build's files by scripts/build-pwa.mjs.
-const CACHE_NAME = "todofuken-pwa-fe5ac155b13dbecc";
+const CACHE_NAME = "todofuken-pwa-4b422a6938573f84";
 const APP_ENTRY = "./docs/index.html";
 const PRECACHE_ASSETS = [
   "./",
   "./index.html",
   "./docs/index.html",
-  "./docs/assets/index-CYZW2Z7m.js",
-  "./docs/assets/index-DmyrvFWs.css",
+  "./docs/assets/index-CPxhXDpn.css",
+  "./docs/assets/index-CkAOApSB.js",
   "./docs/icons/apple-touch-icon.png",
   "./docs/icons/icon-192.png",
   "./docs/icons/icon-512.png",

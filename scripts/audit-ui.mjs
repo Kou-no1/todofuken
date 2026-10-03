@@ -24,6 +24,7 @@ try {
   for (const card of ["全国47ピース", "全国カラーモード", "全国を練習", "地方ごとにちょうせん", "少しずつ練習"]) {
     await startPuzzle(page, card, ["地方ごとにちょうせん", "少しずつ練習"].includes(card) ? "関東地方" : undefined);
     const colorCount = await page.locator(".puzzle-piece").evaluateAll(elements => new Set(elements.map(element => getComputedStyle(element).getPropertyValue("--region-main"))).size);
+    const progressBeforeCancel = await page.evaluate(() => localStorage.getItem("pref-puzzle:learning:v1"));
     assert.equal(card === "全国47ピース" ? colorCount === 1 : colorCount > 0, true);
     await page.locator(".puzzle-piece").first().dispatchEvent("pointerdown", { pointerId: 9, pointerType: "mouse", clientX: 170, clientY: 740, isPrimary: true, button: 0, bubbles: true });
     await page.waitForSelector(".drag-layer");
@@ -35,6 +36,7 @@ try {
     await page.evaluate(() => window.dispatchEvent(new PointerEvent("pointercancel", { pointerId: 9 })));
     assert.equal(await page.locator(".drag-layer").count(), 0);
     assert.equal(await page.locator(".mistake-pill strong").textContent(), "0");
+    assert.equal(await page.evaluate(() => localStorage.getItem("pref-puzzle:learning:v1")), progressBeforeCancel);
     results.push({ card, colorCount, redGuide: learning, cancellationWithoutMistake: true, secondPointerIgnored: true });
   }
 

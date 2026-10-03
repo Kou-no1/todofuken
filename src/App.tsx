@@ -4,8 +4,9 @@ import { CapitalQuizMode } from "./components/Modes/CapitalQuizMode";
 import { ModeSelect } from "./components/Modes/ModeSelect";
 import { PrefecturePuzzleMode } from "./components/Modes/PrefecturePuzzleMode";
 import { RegionSelect } from "./components/Modes/RegionSelect";
-import type { PuzzlePlayMode } from "./types/puzzle";
+import type { PuzzleChallenge, PuzzlePlayMode } from "./types/puzzle";
 import type { CapitalQuizVariant } from "./utils/capitalQuiz";
+import { createDailyChallenge, createReviewChallenge } from "./utils/learningProgress";
 
 type Screen = "home" | "region-puzzle-select" | "region-quiz-select" | "prefecture-puzzle" | "capital-quiz";
 
@@ -14,14 +15,17 @@ export function App() {
   const [selectedRegionId, setSelectedRegionId] = useState<string | undefined>(undefined);
   const [puzzlePlayMode, setPuzzlePlayMode] = useState<PuzzlePlayMode>("time-attack");
   const [capitalQuizVariant, setCapitalQuizVariant] = useState<CapitalQuizVariant>("standard");
+  const [puzzleChallenge, setPuzzleChallenge] = useState<PuzzleChallenge | undefined>();
 
   const startNationalPuzzle = (playMode: PuzzlePlayMode = "time-attack") => {
+    setPuzzleChallenge(undefined);
     setPuzzlePlayMode(playMode);
     setSelectedRegionId(undefined);
     setScreen("prefecture-puzzle");
   };
 
   const startRegionPuzzle = (regionId: string, playMode: PuzzlePlayMode = puzzlePlayMode) => {
+    setPuzzleChallenge(undefined);
     setPuzzlePlayMode(playMode);
     setSelectedRegionId(regionId);
     setScreen("prefecture-puzzle");
@@ -49,8 +53,17 @@ export function App() {
   };
 
   const goHome = () => {
+    setPuzzleChallenge(undefined);
     setSelectedRegionId(undefined);
     setScreen("home");
+  };
+
+  const startChallenge = (challenge: PuzzleChallenge) => {
+    if (challenge.prefectureIds.length === 0) return;
+    setPuzzleChallenge(challenge);
+    setPuzzlePlayMode(challenge.kind === "review" ? "learn" : "time-attack-color");
+    setSelectedRegionId(undefined);
+    setScreen("prefecture-puzzle");
   };
 
   return (
@@ -63,6 +76,8 @@ export function App() {
           onRegionLearn={() => openRegionPuzzleSelect("learn")}
           onRegionTimeAttack={() => openRegionPuzzleSelect("time-attack")}
           onCapitalQuiz={() => setScreen("region-quiz-select")}
+          onDaily={() => startChallenge(createDailyChallenge())}
+          onReview={() => startChallenge(createReviewChallenge())}
         />
       ) : null}
 
@@ -114,6 +129,7 @@ export function App() {
         <PrefecturePuzzleMode
           playMode={puzzlePlayMode}
           regionId={selectedRegionId}
+          challenge={puzzleChallenge}
           onHome={goHome}
           onStartNational={startNationalPuzzle}
           onStartRegion={startRegionPuzzle}

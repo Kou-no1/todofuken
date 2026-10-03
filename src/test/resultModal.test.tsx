@@ -74,4 +74,12 @@ describe("result modal title display", () => {
     expect(html).not.toContain("しょうごう");
     expect(html).toContain("じぶんのベストこうしん！");
   });
+
+  it.each(["prefecture-daily", "prefecture-review"] as const)("offers an image without a title for %s", (mode) => {
+    const html = renderResult({ mode, clearTimeSeconds: 20, mistakes: 0, isNewBest: false }, 5);
+    expect(html).not.toContain("time-title-badge");
+    expect(html).not.toContain("しょうごう");
+    expect(html).toContain("result-share");
+    expect(html).toContain(mode === "prefecture-daily" ? "今日の5県クリア" : "ふくしゅうできたね");
+  });
 });

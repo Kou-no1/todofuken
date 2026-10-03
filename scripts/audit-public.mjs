@@ -42,6 +42,7 @@ try {
       results.push({ browserRequested: url, resolved: page.url(), cards: await page.locator(".mode-card").count(), errors, manifest });
       if (process.argv.includes("--verify")) {
         assert.equal(await page.locator(".mode-card").count(), 6);
+        assert.equal(await page.locator(".learning-shortcut").count(), 2);
         assert.equal(new URL(page.url()).protocol, "https:");
         assert.equal(manifest.icons.every(icon => icon.status === 200), true);
         await page.evaluate(() => navigator.serviceWorker.ready);
@@ -54,7 +55,10 @@ try {
         await offline.goto(new URL("/todofuken/?offline-public=1", page.url()).href);
         await offline.waitForSelector(".mode-card");
         assert.equal(await offline.locator(".mode-card").count(), 6);
-        results.push({ origin: new URL(page.url()).origin, installability, offlineCards: 6, secure: true });
+        await offline.locator(".daily-shortcut").click();
+        await offline.waitForSelector(".puzzle-piece:not([disabled])");
+        assert.equal(await offline.locator(".puzzle-piece").count(), 5);
+        results.push({ origin: new URL(page.url()).origin, installability, offlineCards: 6, offlineDailyPieces: 5, secure: true });
       }
       await page.screenshot({ path: `artifacts/qa/public-${new URL(url).hostname}.png` });
     } catch (error) {

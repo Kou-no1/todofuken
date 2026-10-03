@@ -48,12 +48,16 @@ try {
   await offline.goto("http://127.0.0.1:4175/todofuken/?offline-test=1");
   await offline.waitForSelector(".mode-card");
   assert.equal(await offline.locator(".mode-card").count(), 6);
+  await offline.locator(".daily-shortcut").click();
+  await offline.waitForSelector(".puzzle-piece:not([disabled])");
+  assert.equal(await offline.locator(".puzzle-piece").count(), 5);
+  await offline.getByRole("button", { name: "モードを選ぶ", exact: true }).click();
   await offline.locator(".mode-card").filter({ hasText: "全国カラーモード" }).click();
   await offline.waitForSelector(".puzzle-piece:not([disabled])");
   assert.equal(await offline.locator(".puzzle-piece").count(), 47);
   assert.deepEqual(errors, []);
   await offline.screenshot({ path: "artifacts/qa/pwa-offline.png" });
-  const result = { manifest, cached, offlineStartUrl: offline.url(), offlinePieceCount: 47, errors };
+  const result = { manifest, cached, offlineStartUrl: offline.url(), offlinePieceCount: 47, offlineDailyPieceCount: 5, errors };
   await fs.writeFile("artifacts/qa/pwa-results.json", JSON.stringify(result, null, 2));
   console.log(JSON.stringify(result, null, 2));
 } finally { await browser.close(); await new Promise(resolve => server.close(resolve)); }

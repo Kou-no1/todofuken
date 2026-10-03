@@ -62,6 +62,17 @@ describe("best time storage", () => {
     expect(loadBestTime("prefecture-national")?.bestTimeSeconds).toBe(80);
   });
 
+  it("separates daily records by date and preserves the legacy national key", () => {
+    saveBestTimeIfImproved("prefecture-national", undefined, 108, 2);
+    saveBestTimeIfImproved("prefecture-daily", undefined, 25, 1, "2026-10-03");
+    saveBestTimeIfImproved("prefecture-daily", undefined, 31, 0, "2026-10-04");
+    expect(loadBestTime("prefecture-daily", undefined, "2026-10-03")?.bestTimeSeconds).toBe(25);
+    expect(loadBestTime("prefecture-daily", undefined, "2026-10-04")?.bestTimeSeconds).toBe(31);
+    expect(loadBestTime("prefecture-national")?.bestTimeSeconds).toBe(108);
+    expect(getBestTimeKey("prefecture-national")).toBe("pref-puzzle:best:prefecture-national");
+    expect(getBestTimeKey("prefecture-daily", undefined, "2026-10-03")).toBe("pref-puzzle:best:prefecture-daily:2026-10-03");
+  });
+
   it("ignores malformed or mismatched records without losing valid legacy records", () => {
     for (const raw of ["{", "null", "{}", '{"bestTimeSeconds":"fast"}']) {
       localStorage.setItem(getBestTimeKey("prefecture-national"), raw);

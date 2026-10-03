@@ -3,6 +3,7 @@ import type { ReactNode, RefObject } from "react";
 import { loadBestTime } from "../../hooks/useBestTime";
 import { formatClock } from "../../utils/timeFormat";
 import { useDialogFocus } from "../../hooks/useDialogFocus";
+import { getJapanDateKey, getReviewPrefectureIds } from "../../utils/learningProgress";
 
 type ModeCardProps = {
   className: string;
@@ -25,6 +26,8 @@ type ModeSelectProps = {
   onRegionLearn: () => void;
   onRegionTimeAttack: () => void;
   onCapitalQuiz: () => void;
+  onDaily: () => void;
+  onReview: () => void;
 };
 
 const ONBOARDING_SEEN_KEY = "todofuken:onboarding:v1:seen";
@@ -154,18 +157,33 @@ export function ModeSelect({
   onNationalColorTimeAttack,
   onRegionLearn,
   onRegionTimeAttack,
-  onCapitalQuiz
+  onCapitalQuiz,
+  onDaily,
+  onReview
 }: ModeSelectProps) {
   const nationalBest = loadBestTime("prefecture-national");
   const nationalColorBest = loadBestTime("prefecture-national-color");
   const learnBest = loadBestTime("prefecture-learn-national");
   const quizBest = loadBestTime("capital-quiz");
+  const [today, setToday] = useState(getJapanDateKey);
+  const dailyBest = loadBestTime("prefecture-daily", undefined, today);
+  const reviewCount = getReviewPrefectureIds().length;
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [launchingMode, setLaunchingMode] = useState<string | null>(null);
   const launchActionRef = useRef<(() => void) | null>(null);
   const launchTimerRef = useRef<number | null>(null);
   const isLaunchLockedRef = useRef(false);
   const onboardingStartRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const updateDate = () => setToday(getJapanDateKey());
+    const interval = window.setInterval(updateDate, 60_000);
+    document.addEventListener("visibilitychange", updateDate);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", updateDate);
+    };
+  }, []);
 
   const finishLaunch = () => {
     if (!isLaunchLockedRef.current) {
@@ -248,6 +266,22 @@ export function ModeSelect({
       </section>
 
       <section className="mode-grid" aria-label="モードを選ぶ">
+        <section className="learning-shortcuts" aria-label="今日の練習">
+          <button type="button" className="learning-shortcut daily-shortcut"
+            disabled={launchingMode !== null}
+            onClick={() => startLaunch("daily", onDaily)}>
+            <span aria-hidden="true">☀️</span>
+            <span><strong>今日の5県</strong><small>{dailyBest ? `今日もクリア！ ベスト ${formatClock(dailyBest.bestTimeSeconds)}` : "毎日かわる5ピースにちょうせん"}</small></span>
+            <span className="shortcut-arrow" aria-hidden="true">→</span>
+          </button>
+          <button type="button" className="learning-shortcut review-shortcut"
+            disabled={reviewCount === 0 || launchingMode !== null}
+            onClick={() => startLaunch("review", onReview)}>
+            <span aria-hidden="true">🧭</span>
+            <span><strong>もう一回練習</strong><small>{reviewCount > 0 ? `ふくしゅう ${reviewCount}県 · 5県ずつ` : "まちがえた県がここに集まるよ"}</small></span>
+            <span className="shortcut-arrow" aria-hidden="true">→</span>
+          </button>
+        </section>
         <ModeCard
           className="mode-card primary-mode mode-red"
           emoji="⏱️"

@@ -26,15 +26,17 @@ import { useDragAndDrop } from "../../hooks/useDragAndDrop";
 import { useMapViewport } from "../../hooks/useMapViewport";
 import { usePuzzleState } from "../../hooks/usePuzzleState";
 import { useTimer } from "../../hooks/useTimer";
-import type { GameMode, Prefecture, PuzzlePlayMode, PuzzleResult, ViewBox } from "../../types/puzzle";
+import type { GameMode, Prefecture, PuzzleChallenge, PuzzlePlayMode, PuzzleResult, ViewBox } from "../../types/puzzle";
 import { fitToOkinawaMainIsland } from "../../utils/mapViewport";
 import { hitTestPrefectureShape } from "../../utils/shapeHitTest";
 import { shuffle } from "../../utils/shuffle";
 import { readStoredValue, writeStoredValue } from "../../utils/storage";
+import { recordPrefecturePractice } from "../../utils/learningProgress";
 
 type PrefecturePuzzleModeProps = {
   playMode: PuzzlePlayMode;
   regionId?: string;
+  challenge?: PuzzleChallenge;
   onHome: () => void;
   onStartNational: (playMode?: PuzzlePlayMode) => void;
   onStartRegion: (regionId: string, playMode?: PuzzlePlayMode) => void;
@@ -131,18 +133,27 @@ function getStoredSoundSetting() {
 export function PrefecturePuzzleMode({
   playMode,
   regionId,
+  challenge,
   onHome,
   onStartNational,
   onStartRegion
 }: PrefecturePuzzleModeProps) {
-  const mode = getPuzzleGameMode(playMode, regionId);
+  const mode: GameMode = challenge
+    ? challenge.kind === "daily" ? "prefecture-daily" : "prefecture-review"
+    : getPuzzleGameMode(playMode, regionId);
+  const dateKey = challenge?.kind === "daily" ? challenge.dateKey : undefined;
+  const isReview = challenge?.kind === "review";
   const isLearningMode = playMode === "learn";
   const isColorTimeAttack = playMode === "time-attack-color" && !regionId;
   const showRegionColors = playMode !== "time-attack" || Boolean(regionId);
-  const scopePrefectures = useMemo(() => getScopePrefectures(regionId), [regionId]);
+  const scopePrefectures = useMemo(() => challenge
+    ? [...new Set(challenge.prefectureIds)]
+        .map((id) => prefectureById.get(id))
+        .filter((prefecture): prefecture is Prefecture => Boolean(prefecture))
+    : getScopePrefectures(regionId), [regionId, challenge]);
   const scopeIds = useMemo(() => new Set(scopePrefectures.map((prefecture) => prefecture.id)), [scopePrefectures]);
   const scopeIdList = useMemo(() => scopePrefectures.map((prefecture) => prefecture.id), [scopePrefectures]);
-  const scopeKey = `${regionId ?? "national"}:${playMode}`;
+  const scopeKey = `${regionId ?? "national"}:${playMode}:${mode}:${dateKey ?? ""}:${scopeIdList.join(",")}`;
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [runId, setRunId] = useState(0);
   const [phase, setPhase] = useState<PuzzlePhase>("countdown");
@@ -157,9 +168,10 @@ export function PrefecturePuzzleMode({
   const [soundOn, setSoundOn] = useState(getStoredSoundSetting);
   const [result, setResult] = useState<PuzzleResult | null>(null);
   const okinawaRestoreViewBoxRef = useRef<ViewBox | null>(null);
+  const missedThisRunRef = useRef(new Set<string>());
 
   const timer = useTimer();
-  const { bestTime, recordResult } = useBestTime(mode, regionId);
+  const { bestTime, recordResult } = useBestTime(mode, regionId, dateKey);
   const drag = useDragAndDrop();
   const viewport = useMapViewport(regionId);
   const puzzle = usePuzzleState(scopeIdList);
@@ -180,6 +192,7 @@ export function PrefecturePuzzleMode({
     setMissWobbleId(undefined);
     setCelebration(null);
     okinawaRestoreViewBoxRef.current = null;
+    missedThisRunRef.current.clear();
     setPieceOrder(shuffle(scopeIdList));
     setPhase("countdown");
     setCountdown(3);
@@ -222,17 +235,19 @@ export function PrefecturePuzzleMode({
   const completePuzzle = useCallback(
     (finalMistakes: number) => {
       const clearTimeSeconds = timer.stop();
-      const best = recordResult(clearTimeSeconds, finalMistakes);
+      const best = isReview ? null : recordResult(clearTimeSeconds, finalMistakes);
       setResult({
         mode,
         regionId,
         clearTimeSeconds,
         mistakes: finalMistakes,
-        isNewBest: best.isNewBest
+        isNewBest: best?.isNewBest ?? false,
+        dateKey,
+        prefectureIds: scopeIdList
       });
       setPhase("complete");
     },
-    [mode, recordResult, regionId, timer]
+    [mode, recordResult, regionId, timer, isReview, dateKey, scopeIdList]
   );
 
   const restoreOkinawaViewport = useCallback(() => {
@@ -293,7 +308,10 @@ export function PrefecturePuzzleMode({
         if (nextPlacedCount >= scopeIdList.length) {
           completePuzzle(puzzle.mistakes);
         }
+        recordPrefecturePractice(target.id, missedThisRunRef.current.has(target.id) ? "correct-after-mistake" : "clean");
       } else {
+        missedThisRunRef.current.add(target.id);
+        recordPrefecturePractice(target.id, "mistake");
         puzzle.markMistake(target.name);
         setHintedId(isLearningMode ? target.id : undefined);
         setMissWobbleId(target.id);
@@ -453,13 +471,13 @@ export function PrefecturePuzzleMode({
         >
           {activePrefecture?.name ?? " "}
         </div>
-        <TimeAttackPanel elapsedSeconds={timer.elapsedSeconds} bestTime={bestTime} />
+        <TimeAttackPanel elapsedSeconds={timer.elapsedSeconds} bestTime={isReview ? null : bestTime} />
         <ProgressPanel placedCount={puzzle.placedCount} totalCount={puzzle.totalCount} mistakes={puzzle.mistakes} />
         <p className="status-message" aria-live="polite">
           <span className="mascot" aria-hidden="true">
             {recentPlacedId ? "😄" : isLearningMode ? "🧭" : "🚀"}
           </span>
-          {getModeText(playMode, regionId)} / {puzzle.feedback}
+          {challenge ? isReview ? "もう一回練習" : "今日の5県" : getModeText(playMode, regionId)} / {puzzle.feedback}
         </p>
       </section>
 
@@ -512,7 +530,7 @@ export function PrefecturePuzzleMode({
         ) : null}
       </section>
 
-      <BottomTray label={regionId ? "この地方のピース" : "都道府県ピース"}>
+      <BottomTray label={challenge ? isReview ? "ふくしゅうのピース" : "今日の5県" : regionId ? "この地方のピース" : "都道府県ピース"}>
         {remainingPrefectures.map((prefecture) => (
           <PuzzlePiece
             key={prefecture.id}

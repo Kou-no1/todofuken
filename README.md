@@ -51,6 +51,21 @@ npm run generate:prefectures
 - localStorage によるモード別・地方別ベストタイム保存
 - 初回のみの遊び方、音ON/OFF、主要陸地を基準にした形ベースの吸着
 - PWA・ホーム画面追加・初回ロード後のオフライン起動
+- 今日の5県: 日本時間の日付から決まる5ピース。地方色あり・赤いガイドなし・称号なし。ベストは日付ごとに保存
+- もう一回練習: パズルでまちがえた県だけを最大5県ずつ、赤いガイドつきで復習
+- クリア結果のPNG保存・対応端末での画像共有（1080×1350、個人情報なし）
+
+## 毎日の練習・復習・結果画像
+
+復習履歴はこの機能追加後のプレイから記録します。以前のベスト記録から県別のミスは復元しません。
+
+ホームの6枚のモードカードはそのままに、「今日の5県」「もう一回練習」の入口を追加しています。今日の出題は日本時間0時に切り替わり、端末間でも同じ日なら同じ5県です。プレイ途中で日付が変わっても開始時の問題と記録日を保ちます。端末時計を使い、サーバーとの時刻同期や外部ランキングは行いません。
+
+記録キーは `pref-puzzle:best:prefecture-daily:YYYY-MM-DD`。従来の `pref-puzzle:best:prefecture-national` などは変更していません。今日の問題と全国47県の記録・称号は混ざりません。
+
+復習用の県別履歴は `pref-puzzle:learning:v1` に保存します。誤ドロップ時に復習対象へ追加し、その後のプレイで2回続けてミスなく置けたら対象から外します。まちがえた直後に置き直しても「ミスなし1回」とは数えず、キャンセルは履歴にもミスにも加えません。未復習の県・最後の練習が古い県を優先し、1回につき最大5県を出します。問題の組み合わせが変わる復習ではベストタイムを保存しません。クイズの既存の誤答復習は従来どおりです。
+
+結果画面でCanvasからPNGを作り、クリアした県を地図上に表示します。ハードモードの画像は地方色なしで称号あり、それ以外は称号なしです。準備済みのファイルをボタン操作で [Web Share API](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/share) に渡し、ファイル共有非対応のブラウザでも「がぞうをほぞん」でPNGをダウンロードできます。作成は端末内で行い、自動投稿・画像の外部送信・氏名の埋め込みは行いません。共有先の選択は利用者が行います。新しい実行時ライブラリは追加していません。
 
 ## 公開とオフライン対応
 
@@ -63,6 +78,7 @@ npm run generate:prefectures
 - 全体監査: `AUDIT-2026-10-03.md`
 - 実描画SVGのドラッグ回帰: `node scripts/audit-browser.mjs`
 - モード・クイズ・保存不能環境・キーボード: `node scripts/audit-ui.mjs`
+- 今日の5県・復習・PNG・共有API・小画面の結果表示: `node scripts/audit-learning.mjs`
 - Pagesと同じサブパスでのオフライン検証: `node scripts/audit-pwa.mjs`（先に `npm run build:pages`）
 - 公開版の起動・インストール条件・オフライン確認: `node --use-system-ca scripts/audit-public.mjs --verify`
 - Shortsの構成・投稿文: `SHORTS-PLAN.md`
@@ -87,6 +103,8 @@ npm run generate:prefectures
 - `src/data/regions.ts`: 指定された6地方区分と自動計算bbox
 - `src/data/capitals.ts`: 県庁所在地クイズ用データ
 - `src/utils/capitalQuiz.ts`: 同地方中心の選択肢生成、逆向き出題、とっくん判定
+- `src/utils/learningProgress.ts`: 日付別5県の生成、県別の復習履歴と出題選択
+- `src/utils/resultImage.ts`: 結果画像の端末内PNG生成
 - `src/data/timeTitles.ts`: タイム称号データ
 
 ## 地方区分

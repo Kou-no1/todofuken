@@ -1,10 +1,11 @@
-import { regionById } from "../../data/regions";
-import type { GameMode, PuzzleResult } from "../../types/puzzle";
+import type { PuzzleResult } from "../../types/puzzle";
 import { formatClearTime } from "../../utils/timeFormat";
 import { getNextTitleGap, getTimeTitle } from "../../utils/timeTitle";
 import { TimeTitleBadge } from "./TimeTitleBadge";
 import { useRef } from "react";
 import { useDialogFocus } from "../../hooks/useDialogFocus";
+import { getModeLabel } from "../../utils/resultLabel";
+import { ResultShare } from "./ResultShare";
 
 type ResultModalProps = {
   result: PuzzleResult;
@@ -15,42 +16,13 @@ type ResultModalProps = {
   onHome: () => void;
 };
 
-function getModeLabel(mode: GameMode, regionId?: string): string {
-  if (mode === "prefecture-national") {
-    return "全国 ハードモード";
-  }
-
-  if (mode === "prefecture-national-color") {
-    return "全国 カラーモード";
-  }
-
-  if (mode === "prefecture-learn-national") {
-    return "全国 覚えるモード";
-  }
-
-  if (mode === "prefecture-region") {
-    return `${regionById.get(regionId ?? "")?.name ?? "地方モード"} タイムアタック`;
-  }
-
-  if (mode === "prefecture-learn-region") {
-    return `${regionById.get(regionId ?? "")?.name ?? "地方モード"} 覚えるモード`;
-  }
-
-  if (mode === "capital-quiz") {
-    return regionId ? `${regionById.get(regionId)?.name ?? "地方"} 市名クイズ` : "全国 市名クイズ";
-  }
-
-  if (mode === "capital-quiz-special") {
-    return "県名とちがう市 とっくん";
-  }
-
-  return "学ぶモード";
-}
-
 function getResultMessage(result: PuzzleResult, showTimeTitle: boolean, title: ReturnType<typeof getTimeTitle>) {
   if (showTimeTitle) {
     return title.comment;
   }
+
+  if (result.mode === "prefecture-review") return "ふくしゅうできたね！形と場所をもう一回おぼえたよ。";
+  if (result.mode === "prefecture-daily") return "今日の5県クリア！明日もちょうせんしよう。";
 
   return result.isNewBest
     ? "いいペースでクリア！つぎも楽しくちょうせんしよう。"
@@ -111,6 +83,7 @@ export function ResultModal({ result, totalCount, onRetry, onNextRegion, onNatio
             モードを選ぶ
           </button>
         </div>
+        <ResultShare result={result} totalCount={totalCount} />
       </section>
     </div>
   );

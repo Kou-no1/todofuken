@@ -202,11 +202,12 @@ export function CapitalQuizMode({ regionId, variant = "standard", onHome, onStar
         regionId,
         clearTimeSeconds,
         mistakes: finalMistakes,
-        isNewBest: best.isNewBest
+        isNewBest: best.isNewBest,
+        prefectureIds: quizPrefectures.map((prefecture) => prefecture.id)
       });
       setPhase("complete");
     },
-    [gameMode, recordResult, regionId, timer]
+    [gameMode, recordResult, regionId, timer, quizPrefectures]
   );
 
   const moveNext = useCallback(
