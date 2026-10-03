@@ -579,7 +579,7 @@ button:focus-visible {
 .learning-shortcuts {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   position: relative;
   z-index: 1;
@@ -602,6 +602,7 @@ button:focus-visible {
 }
 
 .review-shortcut { background: #fff3e9; border-color: #ffd0ac; }
+.handwriting-shortcut { background: #f1fce9; border-color: #bddf99; }
 .learning-shortcut:active { transform: translateY(3px); }
 .learning-shortcut > span:first-child { font-size: 1.65rem; flex-shrink: 0; }
 .learning-shortcut > span:nth-child(2) { min-width: 0; display: grid; gap: 3px; }

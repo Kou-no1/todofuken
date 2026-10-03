@@ -28,6 +28,7 @@ type ModeSelectProps = {
   onCapitalQuiz: () => void;
   onDaily: () => void;
   onReview: () => void;
+  onHandwriting: () => void;
 };
 
 const ONBOARDING_SEEN_KEY = "todofuken:onboarding:v1:seen";
@@ -159,7 +160,8 @@ export function ModeSelect({
   onRegionTimeAttack,
   onCapitalQuiz,
   onDaily,
-  onReview
+  onReview,
+  onHandwriting
 }: ModeSelectProps) {
   const nationalBest = loadBestTime("prefecture-national");
   const nationalColorBest = loadBestTime("prefecture-national-color");
@@ -279,6 +281,13 @@ export function ModeSelect({
             onClick={() => startLaunch("review", onReview)}>
             <span aria-hidden="true">🧭</span>
             <span><strong>もう一回練習</strong><small>{reviewCount > 0 ? `ふくしゅう ${reviewCount}県 · 5県ずつ` : "まちがえた県がここに集まるよ"}</small></span>
+            <span className="shortcut-arrow" aria-hidden="true">→</span>
+          </button>
+          <button type="button" className="learning-shortcut handwriting-shortcut"
+            disabled={launchingMode !== null}
+            onClick={() => startLaunch("handwriting", onHandwriting)}>
+            <span aria-hidden="true">✏️</span>
+            <span><strong>漢字のなぞりがき</strong><small>県名・市名を1文字ずつ練習</small></span>
             <span className="shortcut-arrow" aria-hidden="true">→</span>
           </button>
         </section>

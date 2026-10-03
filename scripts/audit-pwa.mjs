@@ -41,6 +41,7 @@ try {
   });
   assert.ok(cached.some(url => /assets\/.*\.js$/.test(url)));
   assert.ok(cached.some(url => /assets\/.*\.css$/.test(url)));
+  assert.ok(cached.some(url => /assets\/.*\.woff2$/.test(url)));
   await context.setOffline(true);
   const offline = await context.newPage();
   const errors = [];
@@ -55,6 +56,10 @@ try {
   await offline.locator(".mode-card").filter({ hasText: "全国カラーモード" }).click();
   await offline.waitForSelector(".puzzle-piece:not([disabled])");
   assert.equal(await offline.locator(".puzzle-piece").count(), 47);
+  await offline.getByRole("button", { name: "モードを選ぶ", exact: true }).click();
+  await offline.locator(".handwriting-shortcut").click();
+  await offline.waitForSelector('.tracing-canvas[data-font-ready="true"]');
+  assert.ok(await offline.evaluate(() => document.fonts.check('600 790px "Handwriting Guide"', "北")));
   assert.deepEqual(errors, []);
   await offline.screenshot({ path: "artifacts/qa/pwa-offline.png" });
   const result = { manifest, cached, offlineStartUrl: offline.url(), offlinePieceCount: 47, offlineDailyPieceCount: 5, errors };

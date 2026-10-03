@@ -1,5 +1,18 @@
 # Third Party Notices
 
+## Klee One
+
+The handwriting guide uses a 105-glyph subset of Klee One SemiBold, downloaded through the Google Fonts text-subsetting endpoint.
+
+- Authors: Copyright 2020 The Klee Project Authors
+- Upstream: https://github.com/fontworks-fonts/Klee
+- Distribution: https://github.com/google/fonts/tree/main/ofl/kleeone
+- License: SIL Open Font License 1.1, full notice in `public/fonts/OFL-KleeOne.txt` (also shipped in `docs/fonts/`)
+- Asset: `src/assets/handwriting-guide.woff2`
+- Rebuild: `node --use-system-ca scripts/build-handwriting-font.mjs`
+
+This is a handwriting-style typeface, not stroke-order data or a certified textbook handwriting guide. The UI font is unchanged.
+
 ## open-data-jp-prefectures-geojson
 
 The prefecture SVG paths in `src/data/prefectures.ts` are generated from:

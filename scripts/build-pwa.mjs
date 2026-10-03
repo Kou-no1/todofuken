@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 const output = process.argv[2];
 if (!output || !["docs", "dist"].includes(output)) throw new Error("Expected docs or dist output");
 const files = await fs.readdir(output, { recursive: true });
-const assets = files.filter(name => /\.(js|css|png|webmanifest)$/.test(name) && name !== "sw.js").sort();
+const assets = files.filter(name => /\.(js|css|png|woff2|webmanifest)$/.test(name) && name !== "sw.js").sort();
 const html = await fs.readFile(path.join(output, "index.html"), "utf8");
 const hash = createHash("sha256").update(html);
 for (const file of assets) hash.update(await fs.readFile(path.join(output, file)));

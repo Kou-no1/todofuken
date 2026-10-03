@@ -4,11 +4,12 @@ import { CapitalQuizMode } from "./components/Modes/CapitalQuizMode";
 import { ModeSelect } from "./components/Modes/ModeSelect";
 import { PrefecturePuzzleMode } from "./components/Modes/PrefecturePuzzleMode";
 import { RegionSelect } from "./components/Modes/RegionSelect";
+import { HandwritingMode } from "./components/Modes/HandwritingMode";
 import type { PuzzleChallenge, PuzzlePlayMode } from "./types/puzzle";
 import type { CapitalQuizVariant } from "./utils/capitalQuiz";
 import { createDailyChallenge, createReviewChallenge } from "./utils/learningProgress";
 
-type Screen = "home" | "region-puzzle-select" | "region-quiz-select" | "prefecture-puzzle" | "capital-quiz";
+type Screen = "home" | "region-puzzle-select" | "region-quiz-select" | "prefecture-puzzle" | "capital-quiz" | "handwriting";
 
 export function App() {
   const [screen, setScreen] = useState<Screen>("home");
@@ -78,6 +79,7 @@ export function App() {
           onCapitalQuiz={() => setScreen("region-quiz-select")}
           onDaily={() => startChallenge(createDailyChallenge())}
           onReview={() => startChallenge(createReviewChallenge())}
+          onHandwriting={() => setScreen("handwriting")}
         />
       ) : null}
 
@@ -144,6 +146,8 @@ export function App() {
           onStartRegionQuiz={startRegionQuiz}
         />
       ) : null}
+
+      {screen === "handwriting" ? <HandwritingMode onHome={goHome} /> : null}
     </AppShell>
   );
 }

@@ -1,0 +1,140 @@
+@font-face {
+  font-family: "Handwriting Guide";
+  src: url("../assets/handwriting-guide.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+.handwriting-screen {
+  height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  background: #f0fbfc;
+}
+.handwriting-screen .header-actions { flex-shrink: 0; }
+.handwriting-screen .header-actions button { white-space: nowrap; font-size: 0.85rem; padding: 7px 12px; }
+.handwriting-content {
+  min-height: 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  gap: 28px;
+  width: min(100%, 1100px);
+  margin: 0 auto;
+  padding: 24px 28px max(16px, env(safe-area-inset-bottom, 0px));
+}
+.handwriting-choices { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.handwriting-heading h1 { font-size: 1.65rem; margin: 0 0 8px; }
+.handwriting-heading > span { color: #4f6278; font-size: 0.9rem; }
+.handwriting-kind { display: flex; padding: 4px; gap: 4px; background: #dceff1; border-radius: 14px; }
+.handwriting-kind button {
+  flex: 1;
+  min-height: 54px;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #34465f;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+.handwriting-kind button[aria-pressed="true"] { background: #ffffff; color: #08778a; box-shadow: 0 2px 6px #28475915; }
+.handwriting-kind rt { font-size: 0.55rem; }
+.handwriting-selects { display: grid; gap: 18px; }
+.handwriting-selects label { display: grid; gap: 6px; font-size: 0.85rem; font-weight: 700; }
+.handwriting-selects select {
+  width: 100%; min-width: 0; height: 46px;
+  border: 2px solid #c1dce4; border-radius: 10px;
+  background: #fff; color: #27324a; padding: 4px 10px; font: inherit; font-size: 0.95rem;
+}
+.handwriting-workspace {
+  min-height: 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  gap: 12px;
+  justify-items: center;
+}
+.handwriting-word { text-align: center; min-width: 0; }
+.handwriting-word h2 { margin: 7px 0 0; font-size: 1.9rem; line-height: 1.4; }
+.handwriting-word rt { font-size: 0.8rem; font-weight: 500; }
+.handwriting-word p { margin: 6px 0 0; font-size: 0.85rem; color: #4f6278; line-height: 1.6; }
+.handwriting-word p rt { font-size: 0.55rem; }
+.handwriting-characters { display: flex; gap: 8px; }
+.handwriting-characters button {
+  position: relative; width: 44px; height: 44px; flex-shrink: 0;
+  background: #fff; border: 2px solid #bfd5df; color: #27324a;
+  border-radius: 8px; font-size: 1.3rem; font-weight: 700;
+}
+.handwriting-characters .is-current { border-color: #00a5ba; background: #d9f7fb; }
+.character-done { position: absolute; right: -4px; top: -8px; font-size: 0.75rem; color: #166538; }
+.handwriting-paper { width: 100%; height: 100%; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.tracing-canvas {
+  display: block;
+  height: 100%; max-height: 100%; width: auto;
+  aspect-ratio: 1; max-width: 100%;
+  border: 2px solid #9abdc9; border-radius: 8px;
+  background: white; box-shadow: 0 5px 0 #cde6ec;
+  touch-action: none; user-select: none; -webkit-user-select: none;
+  cursor: crosshair;
+}
+.handwriting-tools { width: 100%; max-width: 460px; min-width: 0; display: flex; gap: 10px; align-items: center; justify-content: center; }
+.handwriting-tools button { min-height: 44px; height: 44px; padding: 5px 12px; font-size: 0.9rem; }
+.handwriting-tools button[aria-label="1画もどす"] { width: 44px; padding: 0; font-size: 1.6rem; }
+.handwriting-guide { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; white-space: nowrap; }
+.handwriting-guide input { width: 20px; height: 20px; accent-color: #0099ad; }
+.handwriting-width { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; }
+.handwriting-width input { width: 68px; height: 32px; accent-color: #0099ad; }
+.handwriting-bottom { width: 100%; max-width: 460px; }
+.handwriting-feedback { min-height: 24px; margin: 0 0 8px; font-size: 0.85rem; text-align: center; color: #345369; line-height: 1.4; }
+.handwriting-done { width: 100%; background: #ff7a1a; color: #fff; }
+.handwriting-next-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.handwriting-next-actions .primary-button { background: #ff7a1a; color: #fff; }
+.handwriting-screen button:disabled { opacity: 0.5; cursor: default; }
+
+@media (max-width: 767px) {
+  .handwriting-content { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); padding: 10px 14px max(12px, env(safe-area-inset-bottom, 0px)); gap: 12px; }
+  .handwriting-choices { gap: 9px; }
+  .handwriting-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .handwriting-heading h1 { font-size: 1.2rem; margin: 0; }
+  .handwriting-heading > span { font-size: 0.8rem; }
+  .handwriting-kind button { min-height: 44px; font-size: 0.9rem; }
+  .handwriting-selects { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .handwriting-selects label { gap: 3px; font-size: 0.75rem; }
+  .handwriting-selects select { height: 42px; font-size: 0.85rem; padding: 4px 6px; }
+  .handwriting-workspace { gap: 8px; }
+  .handwriting-word h2 { margin-top: 5px; font-size: 1.5rem; }
+  .handwriting-word p { display: none; }
+  .handwriting-word .capital-context { display: block; font-size: 0.75rem; margin-top: 3px; }
+  .handwriting-word rt { font-size: 0.65rem; }
+  .handwriting-characters { gap: 7px; }
+  .handwriting-characters button { width: 40px; height: 40px; font-size: 1.15rem; }
+  .handwriting-tools { gap: 8px; }
+  .handwriting-tools button { padding: 5px 9px; }
+  .handwriting-tools .handwriting-clear { font-size: 0.8rem; }
+  .handwriting-guide { font-size: 0.8rem; }
+  .handwriting-width input { width: 50px; }
+  .handwriting-feedback { min-height: 18px; margin-bottom: 5px; font-size: 0.75rem; }
+  .handwriting-done, .handwriting-next-actions button { min-height: 44px; padding: 8px 12px; }
+}
+
+@media (max-height: 520px) and (min-width: 600px) {
+  .handwriting-content { grid-template-columns: 220px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); padding: 8px 18px; gap: 18px; }
+  .handwriting-choices { gap: 8px; }
+  .handwriting-heading h1 { font-size: 1.15rem; }
+  .handwriting-kind button { min-height: 44px; font-size: 0.85rem; }
+  .handwriting-selects { grid-template-columns: 1fr; gap: 7px; }
+  .handwriting-selects select { height: 40px; }
+  .handwriting-workspace { gap: 5px; }
+  .handwriting-word h2 { font-size: 1.25rem; }
+  .handwriting-word p { display: none; }
+  .handwriting-characters { display: none; }
+  .handwriting-tools button { height: 38px; min-height: 38px; }
+  .handwriting-feedback { margin-bottom: 3px; font-size: 0.75rem; }
+  .handwriting-done, .handwriting-next-actions button { min-height: 38px; padding: 5px; }
+}
