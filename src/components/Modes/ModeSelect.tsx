@@ -373,7 +373,7 @@ export function ModeSelect({
       <footer className="home-footer">
         <span className="home-footer-tagline">「あったらいいな」をつくってる</span>
         <span className="home-footer-credit">
-          <strong>野村 晃一</strong>
+          <strong>まなびたね</strong>
           <small>All rights reserves.</small>
         </span>
       </footer>
